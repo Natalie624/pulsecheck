@@ -1,28 +1,84 @@
-// app/dashboard/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 export default function DashboardPage() {
   const [prompt, setPrompt] = useState('')
-  const [tone, setTone] = useState('friendly')
+  const [tone, setTone] = useState('friendly') // default tone
+  const [error, setError] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  const isSubmitting = useRef(false) // For debounce
+
+  const CHARACTER_LIMIT = 1000
 
   const handleGenerate = () => {
-    console.log('Prompt:', prompt)
-    console.log('Choose Tone:', tone)
-    // Later this is where we'll call the LLM API
+    // Prevent double-submit
+    if (isSubmitting.current || isGenerating) return
+
+    if (!prompt.trim()) {
+      setError('Please enter a prompt.')
+      return
+    }
+
+    if (prompt.length > CHARACTER_LIMIT) {
+      setError(`Prompt exceeds the ${CHARACTER_LIMIT}-character limit.`)
+      return
+    }
+
+    setError('')
+    setIsGenerating(true)
+    isSubmitting.current = true
+
+    // Simulate async API call
+    setTimeout(() => {
+      console.log('Prompt:', prompt)
+      console.log('Choose Tone:', tone)
+      
+      setIsGenerating(false)
+      isSubmitting.current = false
+    }, 1000)
   }
+
+  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const input = e.target.value
+    const trimmed = input.slice(0, CHARACTER_LIMIT)
+    setPrompt(trimmed)
+
+        if (input.length > CHARACTER_LIMIT) {
+            setError(`Prompt exceeds the ${CHARACTER_LIMIT}-character limit.`)
+        } else if (error && input.trim()) {
+            setError('')
+        }
+    }
 
   return (
     <div className="max-w-2xl mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold mb-6">PulseCheck</h1>
 
       <textarea
-        className="w-full h-32 p-3 border border-gray-300 rounded mb-4"
+        className="w-full h-32 p-3 border border-gray-300 rounded mb-2"
         placeholder="Enter your prompt here..."
         value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
+        onChange={handlePromptChange}
       />
+
+      <div className="flex justify-between items-center text-sm mb-2">
+        <span className="text-gray-500">
+          Character limit: {prompt.length} / {CHARACTER_LIMIT}
+        </span>
+        {prompt.length > CHARACTER_LIMIT && (
+          <span className="text-red-600 font-medium" role="alert">
+            Limit exceeded
+          </span>
+        )}
+      </div> 
+
+      {error && (
+        <p className="text-red-600 text-sm mb-2" role="alert">
+          {error}
+        </p>
+      )}
 
       <select
         className="w-full p-3 border border-gray-300 rounded mb-4"
@@ -35,10 +91,11 @@ export default function DashboardPage() {
       </select>
 
       <button
-        className="w-full bg-blue-600 text-white py-3 px-4 rounded hover:bg-blue-700 transition"
+        className="w-full bg-blue-600 text-white py-3 px-4 rounded hover:bg-blue-700 transition disabled:opacity-50"
         onClick={handleGenerate}
+        disabled={isGenerating}
       >
-        Generate
+        {isGenerating ? 'Generating...' : 'Generate'}
       </button>
     </div>
   )
