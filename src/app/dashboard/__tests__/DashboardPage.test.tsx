@@ -1,9 +1,12 @@
 // __tests__/DashboardPage.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import DashboardPage from '../page'
 import '@testing-library/jest-dom'
+import { mockFetchResponse } from './testUtils/mockFetch'
 
-describe('DashboardPage', () => {
+
+describe('UI behavior', () => {
   it('renders all UI elements', () => {
     render(<DashboardPage />)
 
@@ -25,19 +28,6 @@ describe('DashboardPage', () => {
     expect(select).toHaveValue('formal')
   })
 
-  it('logs output on click', () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-    render(<DashboardPage />)
-    fireEvent.change(screen.getByPlaceholderText(/enter your prompt/i), {
-      target: { value: 'My update' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: /generate/i }))
-
-    expect(logSpy).toHaveBeenCalledWith('Prompt:', 'My update')
-    logSpy.mockRestore()
-  })
-
   // EDGE CASE TESTS
 
   //Empty prompt blocks generation
@@ -55,27 +45,6 @@ describe('DashboardPage', () => {
 
     const select = screen.getByRole('combobox')
     expect(select).toHaveValue('friendly')
-  })
-
-  // Prevent rapid clicks (debounce mock)
-  it('prevents multiple submissions with debounce', async () => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    render(<DashboardPage />)
-
-    fireEvent.change(screen.getByPlaceholderText(/enter your prompt/i), {
-      target: { value: 'Test rapid clicks' },
-    })
-
-    const button = screen.getByRole('button', { name: /generate/i })
-    fireEvent.click(button)
-    fireEvent.click(button)
-    fireEvent.click(button)
-
-    await waitFor(() => {
-      expect(logSpy).toHaveBeenCalledTimes(1) // Debounce effect
-    })
-
-    logSpy.mockRestore()
   })
 
   // Disabled button while loading
@@ -113,6 +82,70 @@ describe('DashboardPage', () => {
   it('matches snapshot', () => {
     const { container } = render(<DashboardPage />)
     expect(container).toMatchSnapshot()
+  })
+  
+})
+
+// LLM INTEGRATION AND API TESTS
+
+describe('LLM API integration', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+  })
+
+  it('renders textarea and button', () => {
+    render(<DashboardPage />)
+    expect(screen.getByPlaceholderText(/enter your prompt/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /generate/i })).toBeInTheDocument()
+  })
+
+  it('shows error if prompt is empty on submit', async () => {
+    render(<DashboardPage />)
+    fireEvent.click(screen.getByRole('button', { name: /generate/i }))
+    expect(await screen.findByText(/please enter a prompt/i)).toBeInTheDocument()
+  })
+
+  // TODO: FIX THIS FAILIG TEST OR REWRITE
+  it('shows error if prompt exceeds character limit', async () => {
+    render(<DashboardPage />)
+
+    const textarea = screen.getByPlaceholderText(/enter your prompt/i)
+    fireEvent.change(textarea, { target: { value: 'a'.repeat(2000) } })
+    fireEvent.click(screen.getByRole('button', { name: /generate/i }))
+
+   await expect(screen.findByText((text) =>
+    text.includes('Prompt exceeds') && text.includes('1000-character limit')
+  )).resolves.toBeInTheDocument()
+  })
+
+  it('submits prompt and displays summary from API', async () => {
+    const mockSummary = 'Here is your summary.'
+    mockFetchResponse({ result: { text: mockSummary } })
+
+    render(<DashboardPage />)
+    fireEvent.change(screen.getByPlaceholderText(/enter your prompt/i), { 
+      target: { value: 'We finished Sprint 1.' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /generate/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/generated summary/i)).toBeInTheDocument()
+      expect(screen.getByText(mockSummary)).toBeInTheDocument()
+    })
+  })
+
+  it('shows error if API returns error', async () => {
+    mockFetchResponse({ error: 'Bad Request'}, false)
+
+    render(<DashboardPage />)
+    fireEvent.change(screen.getByPlaceholderText(/enter your prompt/i), {
+      target: { value: 'Bad request test' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /generate/i }))
+
+    expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument()
   })
   
 })
