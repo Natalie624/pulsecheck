@@ -53,3 +53,57 @@ exports[`DashboardPage > matches snapshot 1`] = `
   </div>
 </div>
 `;
+
+exports[`UI behavior > matches snapshot 1`] = `
+<div>
+  <div
+    class="max-w-2xl mx-auto py-10 px-4"
+  >
+    <h1
+      class="text-3xl font-bold mb-6"
+    >
+      PulseCheck
+    </h1>
+    <textarea
+      class="w-full h-32 p-3 border border-gray-300 rounded mb-2"
+      placeholder="Enter your prompt here..."
+    />
+    <div
+      class="flex justify-between items-center text-sm mb-2"
+    >
+      <span
+        class="text-gray-500"
+      >
+        Character limit: 
+        0
+         / 
+        1000
+      </span>
+    </div>
+    <select
+      class="w-full p-3 border border-gray-300 rounded mb-4"
+    >
+      <option
+        value="friendly"
+      >
+        Team Chill
+      </option>
+      <option
+        value="formal"
+      >
+        Executive Ready
+      </option>
+      <option
+        value="urgent"
+      >
+        Escalation mode
+      </option>
+    </select>
+    <button
+      class="w-full bg-blue-600 text-white py-3 px-4 rounded hover:bg-blue-700 transition disabled:opacity-50"
+    >
+      Generate
+    </button>
+  </div>
+</div>
+`;
