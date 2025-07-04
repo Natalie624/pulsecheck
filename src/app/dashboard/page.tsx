@@ -6,13 +6,14 @@ export default function DashboardPage() {
   const [prompt, setPrompt] = useState('')
   const [tone, setTone] = useState('friendly') // default tone
   const [error, setError] = useState('')
+  const [summary, setSummary] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
 
   const isSubmitting = useRef(false) // For debounce
 
   const CHARACTER_LIMIT = 1000
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     // Prevent double-submit
     if (isSubmitting.current || isGenerating) return
 
@@ -29,15 +30,31 @@ export default function DashboardPage() {
     setError('')
     setIsGenerating(true)
     isSubmitting.current = true
+    setSummary('') // clear previous summary
 
-    // Simulate async API call
-    setTimeout(() => {
-      console.log('Prompt:', prompt)
-      console.log('Choose Tone:', tone)
-      
+    // API call
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, tone }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        console.error('API Error:', data?.error)
+        setError('Something went wrong. Please try again.')
+      } else {
+        setSummary(data.result.text)
+      }
+    } catch (err) {
+      console.error('Unexpected Error:', err)
+      setError('Unexpected error occurred. Please try again.')
+    } finally {
       setIsGenerating(false)
       isSubmitting.current = false
-    }, 1000)
+    }
   }
 
   const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -97,6 +114,13 @@ export default function DashboardPage() {
       >
         {isGenerating ? 'Generating...' : 'Generate'}
       </button>
+
+      {summary && (
+        <div className="mt-6 p-4 bg-gray-100 border border-gray-300 rounded">
+          <h2 className="font-semibold mb-2 text-gray-700">Generated Summary:</h2>
+          <p className="text-gray-800 whitespace-pre-wrap">{summary}</p>
+        </div>
+      )}
     </div>
   )
 }
