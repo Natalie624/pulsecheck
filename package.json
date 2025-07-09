@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/nextjs": "^6.23.2",
     "@langchain/core": "^0.3.62",
+    "@vercel/speed-insights": "^1.2.0",
     "langchain": "^0.3.29",
     "next": "15.3.4",
     "openai": "^5.8.2",

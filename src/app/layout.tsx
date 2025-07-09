@@ -6,6 +6,7 @@ import { ClerkProvider,
     SignedOut,
     UserButton,
  } from "@clerk/nextjs";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./styles/globals.css";
 
 
@@ -42,6 +43,7 @@ export default function RootLayout({
             
           </header>
         {children}
+        <SpeedInsights />
       </body>
     </html>
   </ClerkProvider>
