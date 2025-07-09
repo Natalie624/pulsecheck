@@ -45,3 +45,14 @@ body {
   z-index: 1;
 
 }
+
+.static-gradient {
+  background: linear-gradient(90deg, #63DFFA, #5a38e0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+html, body {
+  overflow-x: hidden;
+}
