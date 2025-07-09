@@ -15,7 +15,8 @@ PulseCheck is an AI-powered status report generator that helps teams quickly sum
 - App Router
 - Tailwind CSS
 - Clerk.dev (Auth)
-- OpenAI API (Coming soon)
+- OpenAI API with gpt-4.1
+- Langchain AI abstraction library 
 - Vercel (Hosting)
 
 ## 📦 Getting Started
@@ -29,8 +30,8 @@ npm run dev
 ```
 
 ## Roadmap
-- Integrate Clerk.dev for login
-- Build prompt -> report logic via OpenAI API
+- ✅ Integrate Clerk.dev for login
+- ✅ Build prompt -> report logic via OpenAI API
 - Add tone/style selector
 - Allow export or copy of report
 - Team sharing and history (future)
