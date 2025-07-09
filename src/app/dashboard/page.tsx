@@ -1,126 +1,23 @@
-'use client'
+// Pulse Check Dashboard
 
-import { useState, useRef } from 'react'
+import { currentUser } from '@clerk/nextjs/server'
+import PromptForm from '../components/PromptForm'
 
-export default function DashboardPage() {
-  const [prompt, setPrompt] = useState('')
-  const [tone, setTone] = useState('friendly') // default tone
-  const [error, setError] = useState('')
-  const [summary, setSummary] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
-
-  const isSubmitting = useRef(false) // For debounce
-
-  const CHARACTER_LIMIT = 1000
-
-  const handleGenerate = async () => {
-    // Prevent double-submit
-    if (isSubmitting.current || isGenerating) return
-
-    if (!prompt.trim()) {
-      setError('Please enter a prompt.')
-      return
-    }
-
-    if (prompt.length > CHARACTER_LIMIT) {
-      setError(`Prompt exceeds the ${CHARACTER_LIMIT}-character limit.`)
-      return
-    }
-
-    setError('')
-    setIsGenerating(true)
-    isSubmitting.current = true
-    setSummary('') // clear previous summary
-
-    // API call
-    try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, tone }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        console.error('API Error:', data?.error)
-        setError('Something went wrong. Please try again.')
-      } else {
-        setSummary(data.result.text)
-      }
-    } catch (err) {
-      console.error('Unexpected Error:', err)
-      setError('Unexpected error occurred. Please try again.')
-    } finally {
-      setIsGenerating(false)
-      isSubmitting.current = false
-    }
-  }
-
-  const handlePromptChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const input = e.target.value
-    const trimmed = input.slice(0, CHARACTER_LIMIT)
-    setPrompt(trimmed)
-
-        if (input.length > CHARACTER_LIMIT) {
-            setError(`Prompt exceeds the ${CHARACTER_LIMIT}-character limit.`)
-        } else if (error && input.trim()) {
-            setError('')
-        }
-    }
+export default async function DashboardPage() {
+  const user = await currentUser()
 
   return (
-    <div className="max-w-2xl mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold mb-6">PulseCheck</h1>
+    <main className="flex flex-col items-center justify-center min-h-screen px-6 py-16 bg-white text-center">
+      <h1 className="text-5xl md:text-6xl font-semibold leading-snug static-gradient mb-4">
+        Welcome back, {user?.firstName ?? 'friend'} 👋
+      </h1>
 
-      <textarea
-        className="w-full h-32 p-3 border border-gray-300 rounded mb-2"
-        placeholder="Enter your prompt here..."
-        value={prompt}
-        onChange={handlePromptChange}
-      />
+      <p className="text-lg text-gray-700 mb-6 max-w-2xl">
+        PulseCheck is ready to help you generate concise, AI-powered status reports.
+      </p>
 
-      <div className="flex justify-between items-center text-sm mb-2">
-        <span className="text-gray-500">
-          Character limit: {prompt.length} / {CHARACTER_LIMIT}
-        </span>
-        {prompt.length > CHARACTER_LIMIT && (
-          <span className="text-red-600 font-medium" role="alert">
-            Limit exceeded
-          </span>
-        )}
-      </div> 
-
-      {error && (
-        <p className="text-red-600 text-sm mb-2" role="alert">
-          {error}
-        </p>
-      )}
-
-      <select
-        className="w-full p-3 border border-gray-300 rounded mb-4"
-        value={tone}
-        onChange={(e) => setTone(e.target.value)}
-      >
-        <option value="friendly">Team Chill</option>
-        <option value="formal">Executive Ready</option>
-        <option value="urgent">Escalation mode</option>
-      </select>
-
-      <button
-        className="w-full bg-blue-600 text-white py-3 px-4 rounded hover:bg-blue-700 transition disabled:opacity-50"
-        onClick={handleGenerate}
-        disabled={isGenerating}
-      >
-        {isGenerating ? 'Generating...' : 'Generate'}
-      </button>
-
-      {summary && (
-        <div className="mt-6 p-4 bg-gray-100 border border-gray-300 rounded">
-          <h2 className="font-semibold mb-2 text-gray-700">Generated Summary:</h2>
-          <p className="text-gray-800 whitespace-pre-wrap">{summary}</p>
-        </div>
-      )}
-    </div>
+      <PromptForm />
+    </main>
   )
 }
+

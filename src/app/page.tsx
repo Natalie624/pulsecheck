@@ -1,3 +1,5 @@
+// Pulse Check Home Page
+
 import GuardedRoutes from './components/GuardedRoutes';
 import AuthButtons from './components/AuthButtons';
 
