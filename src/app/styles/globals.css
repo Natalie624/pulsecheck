@@ -52,3 +52,7 @@ body {
   background-clip: text;
   color: transparent;
 }
+
+html, body {
+  overflow-x: hidden;
+}

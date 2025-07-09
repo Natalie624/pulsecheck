@@ -72,10 +72,10 @@ export default function DashboardPage() {
     }
 
   return (
-    <div className="max-w-2xl mx-auto py-10 px-4 text-gray-800 text-left">
+    <div className="max-w-2xl mx-auto py-10 px-4 text-gray-800 text-left w-full">
         <div className="flex justify-center">
             <textarea
-                className="w-[40rem] max-w-full h-32 p-3 border border-gray-300 rounded mb-2"
+                className="w-full md:w-[40rem] h-32 p-3 border border-gray-300 rounded mb-2"
                 placeholder="Enter your prompt here..."
                 value={prompt}
                 onChange={handlePromptChange}
@@ -110,9 +110,9 @@ export default function DashboardPage() {
         <option value="urgent">Escalation mode</option>
       </select>
 
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-center">
         <button
-            className="bg-[#6c47ff] text-white hover:bg-[#5a38e0] rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-6 cursor-pointer transition disabled:opacity-50"
+            className="w-full md:w-auto bg-[#6c47ff] text-white hover:bg-[#5a38e0] rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-6 cursor-pointer transition disabled:opacity-50"
             onClick={handleGenerate}
             disabled={isGenerating}
         >
