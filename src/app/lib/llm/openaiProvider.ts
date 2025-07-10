@@ -14,9 +14,21 @@ const llm = new ChatOpenAI({
 });
 
 const systemInstructions = {
-    friendly: 'Summarize this update in a friendly, casual tone.',
-    formal: 'Summarize this project update in a clear, professional tone.',
-    urgent: 'Summarize this update as concisely and directly as possible.',
+    friendly: `Summarize this update in a friendly, casual tone.
+    Use emojis and informal language where appropriate.
+    Present results as short bullets or a light narrative.`,
+
+    formal: `
+    Summarize this project update in a professional tone.
+    Use neutral, precise language.
+    Structure output as short paragraphs or labeled bullets.
+    `,
+    
+    urgent: `
+    Summarize this update as concisely and directly as possible.
+    Highlight blockers, delays, and risks.
+    Prefer short, bold-tagged statements and omit unnecessary details.
+    `,
   };
 
 export async function generateWithOpenAI(input: LLMInput): Promise<LLMOutput> {
