@@ -14,6 +14,21 @@ export default function DashboardPage() {
   const [error, setError] = useState('')
   const [summary, setSummary] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
+  const summaryRef = useRef<HTMLDivElement>(null)
+  const [copySuccess, setCopySuccess] = useState(false)
+
+  const handleCopy = async () => {
+    if (!summaryRef.current) return
+
+    try {
+      const textToCopy = summaryRef.current.innerText
+      await navigator.clipboard.writeText(textToCopy)
+      setCopySuccess(true)
+      setTimeout(() => setCopySuccess(false), 2000) // reset
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
 
   const isSubmitting = useRef(false) // For debounce
 
@@ -164,11 +179,21 @@ export default function DashboardPage() {
       </div>
 
       {summary && (
-        <div className="mt-6 p-4 bg-gray-100 border border-gray-300 rounded">
+        <div className="mt-6 p-4 bg-gray-100 border border-gray-300 rounded relative">
           <h2 className="font-semibold mb-2 text-gray-700">Generated Summary:</h2>
-          <div className="prose pros-sm sm:prose-base max-w-none text-gray-800">
-            <ReactMarkdown>{summary}</ReactMarkdown>
+
+          <div ref={summaryRef}>
+            <div className="prose pros-sm sm:prose-base max-w-none text-gray-800">
+              <ReactMarkdown>{summary}</ReactMarkdown>
+            </div>
           </div>
+
+          <button
+            onClick={handleCopy}
+            className="absolute top-4 right-4 text-xs bg-white border border-gray-300 rounded px-2 py-1 hover:bg-gray-100 transition"
+            >
+              {copySuccess ? 'Copied!' : 'Copy'}
+          </button>
         </div>
       )}
     </div>
