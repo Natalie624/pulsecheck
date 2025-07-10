@@ -3,8 +3,11 @@
 export type Tone = 'friendly' | 'formal' | 'urgent';
 
 export interface LLMInput {
-  prompt: string;
   tone: Tone;
+  section: 'wins' | 'risks' | 'blockers' | 'dependencies' | 'nextSteps';
+  team?: string;
+  timeframe?: string;
+  prompt: string;
 }
 
 export interface LLMOutput {
