@@ -3,6 +3,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import ReactMarkdown from 'react-markdown'
 
 export default function DashboardPage() {
   const [prompt, setPrompt] = useState('')
@@ -165,7 +166,9 @@ export default function DashboardPage() {
       {summary && (
         <div className="mt-6 p-4 bg-gray-100 border border-gray-300 rounded">
           <h2 className="font-semibold mb-2 text-gray-700">Generated Summary:</h2>
-          <p className="text-gray-800 whitespace-pre-wrap">{summary}</p>
+          <div className="prose pros-sm sm:prose-base max-w-none text-gray-800">
+            <ReactMarkdown>{summary}</ReactMarkdown>
+          </div>
         </div>
       )}
     </div>
