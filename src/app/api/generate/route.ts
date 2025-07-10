@@ -3,13 +3,17 @@ import { generateWithOpenAI } from '@/app/lib/llm/openaiProvider';
 import { LLMInput } from '@/app/lib/llm/types';
 import { z } from 'zod';
 
+
 // Define schema for input validation
 const requestSchema = z.object({
   prompt: z.string().min(10, 'Prompt must be at least 10 characters.'),
   tone: z.enum(['friendly', 'formal', 'urgent']),
+  section: z.enum(['wins', 'risks', 'blockers', 'dependencies', 'nextSteps']),
+  team: z.string().optional(), // Optional for now
+  timeframe: z.string().optional(), // Optional for now
 });
 
-// POST handler only
+// POST handler
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -23,10 +27,16 @@ export async function POST(req: Request) {
       );
     }
 
-    const { prompt, tone } = parsed.data as LLMInput;
+    const { prompt, tone, section, team, timeframe } = parsed.data as LLMInput;
 
     // Call LLM
-    const result = await generateWithOpenAI({ prompt, tone });
+    const result = await generateWithOpenAI({ 
+      prompt, 
+      tone, 
+      section, 
+      team: team || 'the team', 
+      timeframe: timeframe || 'this week', 
+    });
 
     return NextResponse.json({ result });
   } catch (err) {

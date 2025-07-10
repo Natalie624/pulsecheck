@@ -7,6 +7,9 @@ import { useState, useRef } from 'react'
 export default function DashboardPage() {
   const [prompt, setPrompt] = useState('')
   const [tone, setTone] = useState('friendly') // default tone
+  const [section, setSection] = useState('wins')
+  const [team, setTeam] = useState('')
+  const [timeframe, setTimeframe] = useState('')
   const [error, setError] = useState('')
   const [summary, setSummary] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
@@ -39,7 +42,13 @@ export default function DashboardPage() {
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, tone }),
+        body: JSON.stringify({ 
+          prompt, 
+          tone, 
+          section,
+          team,
+          timeframe, 
+        }),
       })
 
       const data = await response.json()
@@ -100,6 +109,21 @@ export default function DashboardPage() {
         </p>
       )}
 
+      {/* Section Dropdown */}
+      <select
+        className="w-full p-3 border border-gray-300 rounded mb-4"
+        value={section}
+        onChange={(e) => setSection(e.target.value)}
+      >
+        <option value="wins">Wins</option>
+        <option value="risks">Risks</option>
+        <option value="blockers">Blockers</option>
+        <option value="dependencies">Dependencies</option>
+        <option value="nextSteps">Next Steps</option>
+      </select>
+
+
+      {/* Tone Dropdown */}
       <select
         className="w-full p-3 border border-gray-300 rounded mb-4"
         value={tone}
@@ -109,6 +133,24 @@ export default function DashboardPage() {
         <option value="formal">Executive Ready</option>
         <option value="urgent">Escalation mode</option>
       </select>
+
+      {/* Optional Team Name Input */}
+      <input
+        type="text"
+        placeholder="Team Name (optional)"
+        className="w-full p-3 border border-gray-300 rounded mb-4"
+        value={team}
+        onChange={(e) => setTeam(e.target.value)}
+      />
+
+      {/* Optional Timeframe Input */}
+      <input
+        type="text"
+        placeholder="Timeframe (ie; this week, past sprint)"
+        className="w-full p-3 border border-gray-300 rounded mb-4"
+        value={timeframe}
+        onChange={(e) => setTimeframe(e.target.value)}
+      />
 
       <div className="flex justify-center">
         <button

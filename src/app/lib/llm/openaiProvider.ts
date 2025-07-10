@@ -5,6 +5,7 @@
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { LLMInput, LLMOutput } from './types';
+import { promptTemplates } from './promptTemplates';
 
 const llm = new ChatOpenAI({
   temperature: 0.7,
@@ -12,16 +13,27 @@ const llm = new ChatOpenAI({
   openAIApiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function generateWithOpenAI(input: LLMInput): Promise<LLMOutput> {
-  const systemInstructions = {
+const systemInstructions = {
     friendly: 'Summarize this update in a friendly, casual tone.',
     formal: 'Summarize this project update in a clear, professional tone.',
     urgent: 'Summarize this update as concisely and directly as possible.',
   };
 
+export async function generateWithOpenAI(input: LLMInput): Promise<LLMOutput> {
+  const { tone, section, team = 'the team', timeframe = 'this week', prompt} = input; 
+
+  const systemPrompt = systemInstructions[tone] ?? systemInstructions.formal;
+
+  const templateFunction = promptTemplates[section];
+  if (!templateFunction) {
+    throw new Error(`Invalid section: ${section}`);
+  }
+
+  const filledPrompt = templateFunction(team, timeframe, prompt); 
+
   const messages = [
-    new SystemMessage(systemInstructions[input.tone]),
-    new HumanMessage(input.prompt),
+    new SystemMessage(systemPrompt),
+    new HumanMessage(filledPrompt),
   ];
 
   const result = await llm.call(messages);
