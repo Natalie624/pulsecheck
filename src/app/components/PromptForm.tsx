@@ -128,6 +128,7 @@ export default function DashboardPage() {
       {/* Section Dropdown */}
       <select
         className="w-full p-3 border border-gray-300 rounded mb-4"
+        aria-label="section"
         value={section}
         onChange={(e) => setSection(e.target.value)}
       >
@@ -142,6 +143,7 @@ export default function DashboardPage() {
       {/* Tone Dropdown */}
       <select
         className="w-full p-3 border border-gray-300 rounded mb-4"
+        aria-label="tone"
         value={tone}
         onChange={(e) => setTone(e.target.value)}
       >
