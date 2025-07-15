@@ -21,7 +21,7 @@ export default function DashboardPage() {
     if (!summaryRef.current) return
 
     try {
-      const textToCopy = summaryRef.current.innerText
+      const textToCopy = summaryRef.current.textContent ?? ''
       await navigator.clipboard.writeText(textToCopy)
       setCopySuccess(true)
       setTimeout(() => setCopySuccess(false), 2000) // reset

@@ -11,6 +11,8 @@ vi.mock('react-markdown', () => ({
   default: ({ children }: { children: string }) => <div>{children}</div>,
 }))
 
+// Prompt form UI tests
+
 describe('PromptForm', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
@@ -88,3 +90,50 @@ describe('PromptForm', () => {
 })
 
 })
+
+// Copy to clipboard tests
+
+describe('copy-to-clipboard', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+      writable: true,
+    })
+  })
+
+  it('copies summary text to clipboard and shows success message', async () => {
+  const summaryText = '🧠 Key highlights from the sprint'
+  mockFetchResponse({ result: { text: summaryText } })
+
+  render(<PromptForm />)
+
+  // Fill out prompt and click generate
+  const textarea = screen.getByPlaceholderText(/enter your prompt/i)
+  fireEvent.change(textarea, { target: { value: 'Sprint update' } })
+  fireEvent.click(screen.getByRole('button', { name: /generate/i }))
+
+  // Wait for summary to appear in the DOM
+  const summary = await screen.findByText(summaryText)
+  expect(summary).toBeInTheDocument()
+
+  // Now click the copy button
+  const copyButton = screen.getByRole('button', { name: /copy/i })
+  fireEvent.click(copyButton)
+
+
+  // Assert clipboard call
+  expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+    expect.stringContaining(summaryText)
+  )
+
+  // Assert success message shows up
+  expect(await screen.findByText(/copied!/i)).toBeInTheDocument()
+})
+
+
+})
+
