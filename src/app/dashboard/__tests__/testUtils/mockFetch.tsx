@@ -1,5 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mockFetchResponse(data: any, ok = true) {
+export function mockFetchResponse(
+  data: Record<string, unknown>,
+  ok = true
+): void {
   vi.stubGlobal('fetch', vi.fn(() =>
     Promise.resolve({
       ok,
@@ -7,4 +9,5 @@ export function mockFetchResponse(data: any, ok = true) {
     })
   ) as unknown as typeof fetch)
 }
+
 
