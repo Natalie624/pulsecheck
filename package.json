@@ -16,6 +16,7 @@
     "langchain": "^0.3.29",
     "next": "15.3.4",
     "openai": "^5.8.2",
+    "posthog-js": "^1.257.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",

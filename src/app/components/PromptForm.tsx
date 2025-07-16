@@ -4,6 +4,7 @@
 
 import { useState, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
+import posthog from '../lib/util/posthog'
 
 export default function DashboardPage() {
   const [prompt, setPrompt] = useState('')
@@ -20,13 +21,42 @@ export default function DashboardPage() {
   const handleCopy = async () => {
     if (!summaryRef.current) return
 
-    try {
-      const textToCopy = summaryRef.current.textContent ?? ''
+    const textToCopy = summaryRef.current.textContent ?? ''
+
+    if (!textToCopy.trim()) {
+      console.warn('Attempted to copy empty summary text.')
+
+      // send to posthog  
+      posthog.capture('copy_attempt_empty', {
+        context: 'PromptForm',
+        time: new Date().toISOString(),
+      })
+
+      return
+    }
+
+    try { 
       await navigator.clipboard.writeText(textToCopy)
       setCopySuccess(true)
+
+      // Send success event to PostHog
+      //console.log('Event: copy_success')
+      posthog.capture('copy_success', {
+        context: 'PromptForm',
+        summaryLength: textToCopy.length,
+        time: new Date().toISOString(),
+      })
+      
       setTimeout(() => setCopySuccess(false), 2000) // reset
     } catch (err) {
       console.error('Failed to copy:', err)
+
+      // Log clipboard write failure
+      posthog.capture('copy_error', {
+        context: 'PromptForm',
+        error: (err as Error).message,
+        time: new Date().toISOString(),
+      })
     }
   }
 
