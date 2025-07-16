@@ -40,7 +40,6 @@ export default function DashboardPage() {
       setCopySuccess(true)
 
       // Send success event to PostHog
-      //console.log('Event: copy_success')
       posthog.capture('copy_success', {
         context: 'PromptForm',
         summaryLength: textToCopy.length,
@@ -66,7 +65,7 @@ export default function DashboardPage() {
 
   const handleGenerate = async () => {
     // Prevent double-submit
-    if (isSubmitting.current || isGenerating) return
+    if (isSubmitting.current || isGenerating)  return
 
     if (!prompt.trim()) {
       setError('Please enter a prompt.')
@@ -78,10 +77,22 @@ export default function DashboardPage() {
       return
     }
 
+    // Track submission
+    posthog.capture('prompt_submitted', {
+    context: 'PromptForm',
+    promptLength: prompt.length,
+    tone,
+    section,
+    team: team || undefined,
+    timeframe: timeframe || undefined,
+    time: new Date().toISOString(),
+  })
+
     setError('')
     setIsGenerating(true)
     isSubmitting.current = true
     setSummary('') // clear previous summary
+
 
     // API call
     try {
@@ -102,12 +113,46 @@ export default function DashboardPage() {
       if (!response.ok) {
         console.error('API Error:', data?.error)
         setError('Something went wrong. Please try again.')
+
+        // Track failure
+        posthog.capture('prompt_generation_failed', {
+        context: 'PromptForm',
+        error: data?.error || 'Unknown error',
+        tone,
+        section,
+        team: team || undefined,
+        timeframe: timeframe || undefined,
+        time: new Date().toISOString(),
+      })
       } else {
         setSummary(data.result.text)
+
+        // Track success
+        posthog.capture('prompt_generation_success', {
+        context: 'PromptForm',
+        summaryLength: data.result.text.length,
+        tone,
+        section,
+        team: team || undefined,
+        timeframe: timeframe || undefined,
+        time: new Date().toISOString(),
+        })
       }
     } catch (err) {
       console.error('Unexpected Error:', err)
       setError('Unexpected error occurred. Please try again.')
+
+      // Capture uncaught error
+      posthog.capture('prompt_generation_failed', {
+      context: 'PromptForm',
+      error: (err as Error).message || 'Unhandled error',
+      tone,
+      section,
+      team: team || undefined,
+      timeframe: timeframe || undefined,
+      time: new Date().toISOString(),
+    })
+
     } finally {
       setIsGenerating(false)
       isSubmitting.current = false
@@ -160,7 +205,11 @@ export default function DashboardPage() {
         className="w-full p-3 border border-gray-300 rounded mb-4"
         aria-label="section"
         value={section}
-        onChange={(e) => setSection(e.target.value)}
+        onChange={(e) => {
+          const newSection =  e.target.value
+          setSection(newSection)
+          posthog.capture('section_selected', { section: newSection, time: new Date().toISOString() })
+        }}
       >
         <option value="wins">Wins</option>
         <option value="risks">Risks</option>
@@ -175,7 +224,11 @@ export default function DashboardPage() {
         className="w-full p-3 border border-gray-300 rounded mb-4"
         aria-label="tone"
         value={tone}
-        onChange={(e) => setTone(e.target.value)}
+        onChange={(e) => {
+          const newTone = e.target.value
+          setTone(newTone)
+          posthog.capture('tone_selected', { tone: newTone, time: new Date().toISOString() })
+        }}
       >
         <option value="friendly">Team Chill</option>
         <option value="formal">Executive Ready</option>
