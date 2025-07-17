@@ -2,13 +2,22 @@
 
 import GuardedRoutes from './components/GuardedRoutes';
 import AuthButtons from './components/AuthButtons';
+import Image from 'next/image';
 
 
 export default function Home() {
   return (
     <>
     <GuardedRoutes whenSignedInRedirectTo="/dashboard">
-    <main className="flex flex-col items-center justify-center min-h-screen px-6 py-16 bg-white text-center"> 
+    <main className="flex flex-col items-center justify-center min-h-screen px-6 py-16 bg-white text-center">
+      <div className="mt-8 mb-4 flex">
+        <Image
+          src="/logo.svg"
+          alt="Pulse Check Logo"
+          width={100}
+          height={100}
+        />
+      </div> 
      <h1 className="text-5xl md:text-6xl font-semibold leading-snug gradient">
         Welcome to Pulse Check
       </h1>
