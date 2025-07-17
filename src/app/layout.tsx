@@ -10,6 +10,9 @@ import "./styles/globals.css";
 export const metadata: Metadata = {
   title: "PulseCheck App",
   description: "PulseCheck is an AI-powered status report generator designed to quickly and clearly summarize project progress.",
+  icons: {
+    icon: '/favicon.ico',
+  }
 };
 
 export default function RootLayout({
