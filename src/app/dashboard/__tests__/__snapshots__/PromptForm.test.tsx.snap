@@ -25,6 +25,18 @@ exports[`PromptForm > matches snapshot 1`] = `
         1000
       </span>
     </div>
+    <label
+      class="flex items-center text-sm font-medium text-gray-700 mb-1"
+    >
+      Section
+      <button
+        aria-label="More info"
+        class="ml-1 text-gray-400 hover:text-gray-700 focus:outline-none"
+        data-state="closed"
+      >
+        ℹ️
+      </button>
+    </label>
     <select
       aria-label="section"
       class="w-full p-3 border border-gray-300 rounded mb-4"
@@ -55,6 +67,18 @@ exports[`PromptForm > matches snapshot 1`] = `
         Next Steps
       </option>
     </select>
+    <label
+      class="flex items-center text-sm font-medium text-gray-700 mb-1"
+    >
+      Tone
+      <button
+        aria-label="More info"
+        class="ml-1 text-gray-400 hover:text-gray-700 focus:outline-none"
+        data-state="closed"
+      >
+        ℹ️
+      </button>
+    </label>
     <select
       aria-label="tone"
       class="w-full p-3 border border-gray-300 rounded mb-4"
