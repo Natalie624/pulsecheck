@@ -13,7 +13,11 @@ export default async function DashboardPage() {
       </h1>
 
       <p className="text-lg text-gray-700 mb-6 max-w-2xl">
-        PulseCheck is ready to help you generate concise, AI-powered status reports.
+        <span className="font-semibold">Turn messy notes into a polished status update!</span>
+      </p>
+      <p className="text-lg text-gray-700 mb-6 max-w-2xl">
+        <span>Paste raw meeting notes, bullet points, or free-write your thoughts! 
+          We&apos;ll transform them into a clear, concise summary for your team, leadership, or escalation.</span>
       </p>
 
       <PromptForm />
