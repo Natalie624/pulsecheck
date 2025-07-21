@@ -5,6 +5,7 @@
 import { useState, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import posthog from '../lib/util/posthog'
+import * as Tooltip from '@radix-ui/react-tooltip'
 
 export default function DashboardPage() {
   const [prompt, setPrompt] = useState('')
@@ -171,6 +172,35 @@ export default function DashboardPage() {
         }
     }
 
+  // Tool tips
+  const TooltipIcon: React.FC<{ content: string }> = ({ content }) => (
+  <Tooltip.Provider>
+    <Tooltip.Root>
+      <Tooltip.Trigger asChild>
+        <button
+          className="ml-1 text-gray-400 hover:text-gray-700 focus:outline-none"
+          aria-label="More info"
+        >
+          ℹ️
+        </button>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Content
+          side="top"
+          align="center"
+          className="z-50 bg-black text-white text-xs px-3 py-1 rounded shadow-md animate-fade-in"
+          sideOffset={4}
+        >
+          {content}
+          <Tooltip.Arrow className="fill-black" />
+        </Tooltip.Content>
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  </Tooltip.Provider>
+);
+
+
+
   return (
     <div className="max-w-2xl mx-auto py-10 px-4 text-gray-800 text-left w-full">
         <div className="flex justify-center">
@@ -201,6 +231,10 @@ export default function DashboardPage() {
       )}
 
       {/* Section Dropdown */}
+      <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+        Section
+        <TooltipIcon content="Pick which part of your update this input is for — e.g., Wins, Risks, Blockers, Dependencies, or Next Steps." />
+      </label>
       <select
         className="w-full p-3 border border-gray-300 rounded mb-4"
         aria-label="section"
@@ -220,6 +254,10 @@ export default function DashboardPage() {
 
 
       {/* Tone Dropdown */}
+      <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
+        Tone
+        <TooltipIcon content="Choose how you want the summary to sound — e.g., professional, friendly, assertive." />
+      </label>
       <select
         className="w-full p-3 border border-gray-300 rounded mb-4"
         aria-label="tone"
