@@ -62,7 +62,7 @@ export default function DashboardPage() {
 
   const isSubmitting = useRef(false) // For debounce
 
-  const CHARACTER_LIMIT = 1000
+  const CHARACTER_LIMIT = 10000
 
   const handleGenerate = async () => {
     // Prevent double-submit

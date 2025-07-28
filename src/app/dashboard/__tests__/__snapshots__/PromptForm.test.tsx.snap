@@ -22,7 +22,7 @@ exports[`PromptForm > matches snapshot 1`] = `
         Character limit: 
         0
          / 
-        1000
+        10000
       </span>
     </div>
     <label
