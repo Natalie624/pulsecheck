@@ -35,8 +35,8 @@ describe('PromptForm', () => {
   it('truncates prompt over character limit and shows error', async () => {
     render(<PromptForm />)
     const textarea = screen.getByPlaceholderText(/enter your prompt/i)
-    fireEvent.change(textarea, { target: { value: 'a'.repeat(2000) } })
-    expect(textarea).toHaveValue('a'.repeat(1000))
+    fireEvent.change(textarea, { target: { value: 'a'.repeat(10001) } })
+    expect(textarea).toHaveValue('a'.repeat(10000))
     expect(screen.getByText(/prompt exceeds/i)).toBeInTheDocument()
   })
 
