@@ -35,7 +35,7 @@ export default function Home() {
       <footer className="mt-18 text-sm text-gray-400">
         <div className="flex flex-row items-center justify-center gap-6">
               <Link
-                href="https://nataliecervantes.com/terms-of-service-pulsecheck"
+                href="https://www.getpulsecheck.ai/terms"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline hover:text-gray-800 px-2"
@@ -44,7 +44,7 @@ export default function Home() {
               </Link>
               <span>•</span>
               <Link
-                href="https://nataliecervantes.com/privacy-policy-pulsecheck"
+                href="https://www.getpulsecheck.ai/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:underline hover:text-gray-800 px-2"
