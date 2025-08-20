@@ -33,7 +33,7 @@ export default function Home() {
       
       {/* Footer links */}
       <footer className="mt-18 text-sm text-gray-400">
-        <div className="fflex flex-row items-center justify-center gap-6">
+        <div className="flex flex-row items-center justify-center gap-6">
               <Link
                 href="https://nataliecervantes.com/terms-of-service-pulsecheck"
                 target="_blank"
