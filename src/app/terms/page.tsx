@@ -3,7 +3,7 @@ import LegalSection from '../legal/LegalSection'
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service – PulseCheck',
+  title: 'Terms of Service',
   description:
     'Terms of Service for PulseCheck, the AI-powered status report generator.',
   alternates: { canonical: 'https://www.getpulsecheck.ai/terms' },
