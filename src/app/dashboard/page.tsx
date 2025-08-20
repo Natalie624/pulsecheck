@@ -2,6 +2,7 @@
 
 import { currentUser } from '@clerk/nextjs/server'
 import PromptForm from '../components/PromptForm'
+import Link from 'next/link'
 
 export default async function DashboardPage() {
   const user = await currentUser()
@@ -21,6 +22,30 @@ export default async function DashboardPage() {
       </p>
 
       <PromptForm />
+
+      {/* Footer links */}
+      <footer className="mt-18 text-sm text-gray-400">
+        <div className="flex flex-row items-center justify-center gap-6">
+              <Link
+                href="https://www.getpulsecheck.ai/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline hover:text-gray-800 px-2"
+              >
+                Terms of Service
+              </Link>
+              <span>•</span>
+              <Link
+                href="https://www.getpulsecheck.ai/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline hover:text-gray-800 px-2"
+              >
+                Privacy Policy
+              </Link>
+            </div>
+        </footer>
+        
     </main>
   )
 }
