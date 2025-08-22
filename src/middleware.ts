@@ -1,6 +1,17 @@
-import { clerkMiddleware } from '@clerk/nextjs/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 
-export default clerkMiddleware()
+const isAgentRoute = createRouteMatcher(['/dashboard/agent(.*)'])
+
+export default clerkMiddleware(async (auth, req) => {
+  // Protect all routes starting with '/dashboard/agent'
+  if (isAgentRoute(req) && (await auth()).sessionClaims?.metadata?.role !== 'beta-tester') {
+    const url = new URL('/', req.url)
+
+    return NextResponse.redirect(url)
+
+  }
+})
 
 export const config = {
   matcher: [
