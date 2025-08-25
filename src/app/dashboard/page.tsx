@@ -5,12 +5,14 @@ import PromptForm from '../components/PromptForm'
 import Link from 'next/link'
 
 type DashboardPageProps = {
-  searchParams?: { notice?: string }
+  searchParams?: Promise<{ notice?: string }>
 }
 
 export default async function DashboardPage({ searchParams} : DashboardPageProps) {
   const user = await currentUser()
-  const showComingSoon = searchParams?.notice === 'coming-soon'
+
+  const sp = searchParams ? await searchParams : {}
+  const showComingSoon = sp?.notice === 'coming-soon'
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen px-6 py-16 bg-white text-center">
