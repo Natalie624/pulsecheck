@@ -4,13 +4,17 @@ import { NextResponse } from 'next/server'
 const isAgentRoute = createRouteMatcher(['/dashboard/agent(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
-  // Protect all routes starting with '/dashboard/agent'
-  if (isAgentRoute(req) && (await auth()).sessionClaims?.metadata?.role !== 'beta-tester') {
-    const url = new URL('/', req.url)
+  const { userId, sessionClaims } = await auth()
 
+  // Signed-in regular user visiting /dashboard/agent -> redirect with notice
+  if (isAgentRoute(req) && userId && sessionClaims?.metadata?.role !== 'beta-tester') {
+    const url = new URL(req.url)
+    url.pathname = '/dashboard'
+    url.searchParams.set('notice', 'coming-soon')
     return NextResponse.redirect(url)
-
   }
+  // TODO: add other behaviors here
+
 })
 
 export const config = {
