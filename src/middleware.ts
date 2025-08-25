@@ -4,7 +4,12 @@ import { NextResponse } from 'next/server'
 const isAgentRoute = createRouteMatcher(['/dashboard/agent(.*)'])
 
 export default clerkMiddleware(async (auth, req) => {
-  const { userId, sessionClaims } = await auth()
+  const { userId, sessionClaims, redirectToSignIn } = await auth()
+
+  // not signed in -> got to sign-in and return to original url after
+  if (isAgentRoute(req) && !userId) {
+    return redirectToSignIn({ returnBackUrl: req.url })
+  }
 
   // Signed-in regular user visiting /dashboard/agent -> redirect with notice
   if (isAgentRoute(req) && userId && sessionClaims?.metadata?.role !== 'beta-tester') {
@@ -13,6 +18,7 @@ export default clerkMiddleware(async (auth, req) => {
     url.searchParams.set('notice', 'coming-soon')
     return NextResponse.redirect(url)
   }
+  
   // TODO: add other behaviors here
 
 })
