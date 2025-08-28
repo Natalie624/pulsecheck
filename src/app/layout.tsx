@@ -4,6 +4,7 @@ import { ClerkProvider,
     UserButton,
  } from "@clerk/nextjs";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import PostHogIdentity from "./components/PostHogIdentity";
 import "./styles/globals.css";
 
 
@@ -33,6 +34,7 @@ export default function RootLayout({
               <UserButton />
               </header>
             </SignedIn>
+            <PostHogIdentity />
         {children}
         <SpeedInsights />
       </body>
