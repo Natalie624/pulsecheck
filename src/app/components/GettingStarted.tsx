@@ -13,7 +13,7 @@ export default function HelpModalButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 left-4 z-[60] rounded-full bg-blue-600 px-4 py-2 text-white shadow-lg transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+        className="fixed bottom-4 left-4 z-[60] rounded-full bg-[#6c47ff] px-4 py-2 text-white shadow-lg transition hover:bg-[#5a38e0] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls="getting-started-modal"
