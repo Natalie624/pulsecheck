@@ -1,5 +1,7 @@
-// src/app/not-found.tsx
+'use client';
+
 import Link from "next/link";
+import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 export default function NotFound() {
   return (
@@ -32,7 +34,7 @@ export default function NotFound() {
 
         {/* Message */}
         <p className="text-lg mb-8" style={{ color: "#555" }}>
-          Can’t find that page. Let’s head back and generate something great.
+          Can&apos;t find that page. Let&apos;s head back and generate something great.
         </p>
 
         {/* Actions */}
@@ -50,18 +52,39 @@ export default function NotFound() {
             Go Home
           </Link>
 
-          <Link
-            href="/dashboard"
-            className="w-full sm:w-auto inline-flex items-center justify-center rounded-2xl px-5 py-3 font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2"
-            style={{
-              backgroundColor: "rgba(0,0,0,0.05)",
-              border: "1px solid rgba(0,0,0,0.08)",
-              color: "#1a1a1a",
-            }}
-            aria-label="Go to dashboard"
-          >
-            Open Dashboard
-          </Link>
+            {/* If signed in -> normal link to dashboard */}
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-2xl px-5 py-3 font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2"
+              style={{
+                backgroundColor: "rgba(0,0,0,0.05)",
+                border: "1px solid rgba(0,0,0,0.08)",
+                color: "#1a1a1a",
+              }}
+              aria-label="Go to dashboard"
+            >
+              Open Dashboard
+            </Link>
+          </SignedIn>
+
+          {/* If signed out -> open Clerk sign-in and then redirect to /dashboard */}
+          <SignedOut>
+            <SignInButton mode="modal" forceRedirectUrl="/dashboard" signUpForceRedirectUrl="/dashboard">
+              <button
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-2xl px-5 py-3 font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2"
+                style={{
+                  backgroundColor: "rgba(0,0,0,0.05)",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  color: "#1a1a1a",
+                }}
+                aria-label="Sign in to open dashboard"
+              >
+                Open Dashboard
+              </button>
+            </SignInButton>
+          </SignedOut>
+
         </div>
 
         {/* Divider */}
