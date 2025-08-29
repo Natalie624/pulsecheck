@@ -28,7 +28,7 @@ exports[`PromptForm > matches snapshot 1`] = `
     <label
       class="flex items-center text-sm font-medium text-gray-700 mb-1"
     >
-      Section
+      Status Type
       <button
         aria-label="More info"
         class="ml-1 text-gray-400 hover:text-gray-700 focus:outline-none"

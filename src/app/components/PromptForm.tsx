@@ -232,7 +232,7 @@ export default function DashboardPage() {
 
       {/* Section Dropdown */}
       <label className="flex items-center text-sm font-medium text-gray-700 mb-1">
-        Section
+        Status Type
         <TooltipIcon content="Pick which part of your update this input is for — e.g., Wins, Risks, Blockers, Dependencies, or Next Steps." />
       </label>
       <select

@@ -29,11 +29,18 @@ npm run dev
 
 ```
 
+## Testing
+```bash
+npx vitest -u
+npm run test
+
+```
+
 ## Roadmap
 - ✅ Integrate Clerk.dev for login
 - ✅ Build prompt -> report logic via OpenAI API
-- Add tone/style selector
-- Allow export or copy of report
+- ✅ Add tone/style selector
+- ✅ Allow export or copy of report
 - Team sharing and history (future)
 
 Built with ❤️ by @Natalie624 
