@@ -3,6 +3,7 @@
 import { currentUser } from '@clerk/nextjs/server'
 import PromptForm from '../components/PromptForm'
 import Link from 'next/link'
+import GettingStarted from '../components/GettingStarted'
 
 type DashboardPageProps = {
   searchParams?: Promise<{ notice?: string }>
@@ -41,6 +42,7 @@ export default async function DashboardPage({ searchParams} : DashboardPageProps
       </p>
 
       <PromptForm />
+      <GettingStarted />
 
       {/* Footer links */}
       <footer className="mt-18 text-sm text-gray-400">
