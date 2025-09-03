@@ -18,6 +18,8 @@ PulseCheck is an AI-powered status report generator that helps teams quickly sum
 - OpenAI API with gpt-4.1
 - Langchain AI abstraction library 
 - Vercel (Hosting)
+- Neon DB
+- Prisma ORM
 
 ## 📦 Getting Started
 
@@ -29,10 +31,18 @@ npm run dev
 
 ```
 
-## Testing
+## Testing Commands
 ```bash
 npx vitest -u
 npm run test
+
+```
+
+### Prisma Schema Commands
+```bash
+npx prisma format
+npx prisma validate
+npx prisma migrate dev --name init_agent_core
 
 ```
 
