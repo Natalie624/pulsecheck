@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// ---------- Generators & datasource ----------
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum StatusType {
+  WIN
+  RISK
+  BLOCKER
+  DEPENDENCY
+  NEXT_STEP
+}
+
+enum MessageRole {
+  USER
+  AGENT
+  SYSTEM
+}
+
+enum MessageKind {
+  QUESTION
+  ANSWER
+  NOTE
+}
+
+enum NoteSource {
+  USER
+  AGENT
+  IMPORT
+}
+
+// ---------- Models ----------
+model User {
+  id          String   @id @default(cuid())
+  clerkUserId String   @unique
+  email       String   @unique
+  name        String?
+  role        UserRole @default(USER)
+
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clerkUserId])
+  @@index([email])
+}
+
+model Session {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title              String?
+  classificationJson Json?
+  metadata           Json?
+
+  notes       Note[]
+  statusItems StatusItem[]
+  messages    Message[]
+
+  startedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, startedAt])
+}
+
+model Note {
+  id        String  @id @default(cuid())
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  content   String     @db.Text
+  source    NoteSource @default(USER)
+  lineCount Int?
+
+  createdAt DateTime @default(now())
+
+  // Back relation for StatusItem.sourceNote (one Note → many StatusItems)
+  statusItemsFromNote StatusItem[] @relation("StatusItemSourceNote")
+
+  @@index([sessionId, createdAt])
+}
+
+model StatusItem {
+  id        String  @id @default(cuid())
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  type       StatusType
+  content    String     @db.Text
+  confidence Float      @db.DoublePrecision
+
+  // Optional pointer to the Note we derived this from
+  sourceNoteId String?
+  sourceNote   Note?   @relation(name: "StatusItemSourceNote", fields: [sourceNoteId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  // Back relation for Message.relatedStatusItem (one StatusItem → many Messages)
+  messages Message[] @relation("MessageRelatedStatusItem")
+
+  @@index([sessionId, type])
+  @@index([sessionId, createdAt])
+}
+
+model Message {
+  id        String  @id @default(cuid())
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  role    MessageRole
+  kind    MessageKind
+  content String      @db.Text
+
+  // Optional: link Q/A to a specific StatusItem
+  relatedStatusItemId String?
+  relatedStatusItem   StatusItem? @relation(name: "MessageRelatedStatusItem", fields: [relatedStatusItemId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([sessionId, createdAt])
+}
