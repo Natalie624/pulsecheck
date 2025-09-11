@@ -1,3 +1,5 @@
+// Agentic dashboard - paid version
+
 'use client'
 
 export default function AgentModePage() {

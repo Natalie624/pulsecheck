@@ -62,6 +62,8 @@ export enum StatusType {
   NextSteps = 'nextSteps',
 }
 
+export const StatusValues = ['wins', 'risks', 'blockers', 'dependencies', 'nextSteps'] as const
+
 // Preferences gathered or inferred for agent output
 export interface AgentPreferences {
   pov?: AgentPOV
@@ -131,6 +133,37 @@ export const UserAnswerSchema = z.object({
   field: z.enum(['pov', 'format', 'tone', 'thirdPersonName']),
   answer: z.string(),
 })
+
+export const ClassificationInputSchema = z.object({
+  notes: z.string(),
+  preferences: AgentPreferencesSchema.optional(),
+  team: z.string().optional(),
+  timeframe: z.string().optional(),
+  // If the user has already answered some follow-ups, pass them here
+  answers: z.array(
+    // Reuse your existing UserAnswerSchema
+    z.object({
+      field: z.enum(['pov', 'format', 'tone', 'thirdPersonName']),
+      answer: z.string(),
+    })
+  ).optional(),
+})
+export type ClassificationInput = z.infer<typeof ClassificationInputSchema>
+
+// A simple wrapper for follow-up questions
+export const FollowupQuestionSetSchema = z.object({
+  questions: z.array(
+    z.object({
+      question: z.string(),
+      field: z.enum(['pov', 'format', 'tone', 'thirdPersonName']),
+    })
+  ),
+})
+export type FollowupQuestionSet = z.infer<typeof FollowupQuestionSetSchema>
+
+// Alias for clarity in provider naming
+export const FollowupAnswerInputSchema = UserAnswerSchema
+export type FollowupAnswerInput = z.infer<typeof FollowupAnswerInputSchema>
 
 /**
  * CONSTANTS

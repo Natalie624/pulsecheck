@@ -1,4 +1,4 @@
-// Pulse Check Dashboard
+// MVP Pulse Check Dashboard (free version)
 
 import { currentUser } from '@clerk/nextjs/server'
 import PromptForm from '../components/PromptForm'
