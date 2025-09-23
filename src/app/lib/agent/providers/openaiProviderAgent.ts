@@ -1,7 +1,6 @@
 // Runs agentic paid version of PulseCheck
 // OpenAI Agent Provider (LangChain + strict Zod parsing + retries)
 
-
 import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
 import { Runnable } from "@langchain/core/runnables";
@@ -15,15 +14,16 @@ import {
   FollowupAnswerInput,
 } from "@/app/lib/llm/types";
 
-import { buildClassifyPrompt } from "@/app/lib/agent/prompts/classify";
-import { buildFollowupsPrompt } from "@/app/lib/agent/prompts/followups";
-
+import { buildClassifyPrompt } from "@/app/lib/agent/prompts/classificationPrompts";
+import { buildFollowupsPrompt } from "@/app/lib/agent/prompts/followupsPrompts";
 
 /* ------------------------------------------------------------------ */
 /* Model factory                                                       */
 /* ------------------------------------------------------------------ */
 
-function makeModel(modelName = process.env.OPENAI_AGENT_MODEL || "gpt-4o-mini") {
+function makeModel(
+  modelName = process.env.OPENAI_AGENT_MODEL || "gpt-4o-mini"
+) {
   // NOTE: This uses LangChain’s ChatOpenAI wrapper. Your MVP code in /llm stays untouched.
   return new ChatOpenAI({
     modelName,
@@ -66,9 +66,14 @@ async function invokeStructured<T>(
   modelName?: string
 ): Promise<T> {
   const base = makeModel(modelName);
-  const structured: Runnable<unknown, T> = (base as unknown as {
-  withStructuredOutput: (schema: z.ZodType<T>, opts?: { name?: string }) => Runnable<unknown, T>;
-}).withStructuredOutput(schema, { name: "StrictSchema" });
+  const structured: Runnable<unknown, T> = (
+    base as unknown as {
+      withStructuredOutput: (
+        schema: z.ZodType<T>,
+        opts?: { name?: string }
+      ) => Runnable<unknown, T>;
+    }
+  ).withStructuredOutput(schema, { name: "StrictSchema" });
 
   const run = () => structured.invoke(messages);
 
@@ -114,7 +119,7 @@ export async function classifyNotes(
 export async function getFollowupQuestions(
   input: ClassificationInput,
   options?: { modelName?: string }
-): Promise<z.infer<typeof FollowupQuestionSetSchema>>  {
+): Promise<z.infer<typeof FollowupQuestionSetSchema>> {
   const prompt = buildFollowupsPrompt(input);
 
   const sys = new SystemMessage(
@@ -144,11 +149,14 @@ export async function answerFollowupsAndClassify(
     preferences?: AgentPreferences;
   },
   options?: { modelName?: string }
-): Promise<z.infer<typeof ClassificationResultSchema>>  {
+): Promise<z.infer<typeof ClassificationResultSchema>> {
   const merged: ClassificationInput = {
     ...args.original,
     // let the model know it can use resolved preferences now
-    preferences: { ...(args.original.preferences || {}), ...(args.preferences || {}) },
+    preferences: {
+      ...(args.original.preferences || {}),
+      ...(args.preferences || {}),
+    },
     answers: args.answers,
   };
 

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 import { z } from 'zod';
+import { StatusType } from "@prisma/client"
 
 /**
  * FREE VERSION TYPES
@@ -14,7 +15,7 @@ export type Tone = 'friendly' | 'formal' | 'urgent';
 
 export interface LLMInput {
   tone: Tone;
-  section: 'wins' | 'risks' | 'blockers' | 'dependencies' | 'nextSteps';
+  section: 'wins' | 'risks' | 'blockers' | 'dependencies' | 'next steps';
   team?: string;
   timeframe?: string;
   prompt: string;
@@ -24,6 +25,7 @@ export interface LLMOutput {
   text: string;
   model: string;
   provider: string;
+  inputPrompt?: string
 }
 
 /**
@@ -53,16 +55,18 @@ export enum AgentTone {
   EscalationMode = 'escalation mode',
 }
 
+/*
 // Status categories (as enum for agent flow)
 export enum StatusType {
-  Wins = 'wins',
-  Risks = 'risks',
-  Blockers = 'blockers',
-  Dependencies = 'dependencies',
-  NextSteps = 'nextSteps',
+  Wins = 'WINS',
+  Risks = 'RISKS',
+  Blockers = 'BLOCKERS',
+  Dependencies = 'DEPENDENCY',
+  NextSteps = 'NEXT_STEPS',
 }
 
 export const StatusValues = ['wins', 'risks', 'blockers', 'dependencies', 'nextSteps'] as const
+*/
 
 // Preferences gathered or inferred for agent output
 export interface AgentPreferences {
@@ -104,7 +108,7 @@ export interface UserAnswer {
 export const AgentPOVSchema = z.nativeEnum(AgentPOV)
 export const AgentOutputFormatSchema = z.nativeEnum(AgentOutputFormat)
 export const AgentToneSchema = z.nativeEnum(AgentTone)
-export const StatusTypeSchema = z.enum(StatusValues)
+export const StatusTypeSchema = z.nativeEnum(StatusType)
 
 export const AgentPreferencesSchema = z.object({
   pov: AgentPOVSchema.optional(),

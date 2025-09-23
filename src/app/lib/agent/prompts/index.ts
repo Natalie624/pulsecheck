@@ -1,4 +1,3 @@
 // Barrel exports (nice DX)
-export { buildClassifyPrompt } from './classify'
-export { buildFollowupsPrompt } from './followups'
-
+export { buildClassifyPrompt } from "./classificationPrompts";
+export { buildFollowupsPrompt } from "./followupsPrompts";

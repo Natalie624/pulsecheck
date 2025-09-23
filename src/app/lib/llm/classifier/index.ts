@@ -1,6 +1,6 @@
 import { ClassificationInput, ClassificationResult } from "../types";
 import { AgentClassifier } from "./interface";
-import { classifyNotes as openaiClassify } from "../../agent/providers/opanaiProviderAgent";
+import { classifyNotes as openaiClassify } from "../../agent/providers/openaiProviderAgent"; //imports openAI provider for agentic features
 // import { groqProviderAgent } from "../../agent/providers/groqProviderAgent"; // future
 
 const providerMap: Record<string, AgentClassifier> = {
