@@ -101,9 +101,9 @@ export interface UserAnswer {
  * -----------
  * Used for validating/parsing LLM JSON output.
  */
-export const AgentPOVSchema = z.enum(['first', 'second', 'third_limited', 'third_omniscient'])
-export const AgentOutputFormatSchema = z.enum(['bullets', 'paragraph'])
-export const AgentToneSchema = z.enum(['team chill', 'executive', 'escalation mode'])
+export const AgentPOVSchema = z.nativeEnum(AgentPOV)
+export const AgentOutputFormatSchema = z.nativeEnum(AgentOutputFormat)
+export const AgentToneSchema = z.nativeEnum(AgentTone)
 export const StatusTypeSchema = z.enum(StatusValues)
 
 export const AgentPreferencesSchema = z.object({
