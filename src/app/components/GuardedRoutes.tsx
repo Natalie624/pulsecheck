@@ -1,4 +1,4 @@
-// This is a server component that appropriatelyredirects users depending if they are authenticated or not authenticated
+// This is a server component that appropriately redirects users depending if they are authenticated or not authenticated
 
 import { ReactNode } from "react";
 import { auth } from "@clerk/nextjs/server";
