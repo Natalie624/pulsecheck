@@ -2,20 +2,22 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { classifyNotes } from "@/app/lib/llm/classifier" // core logic
 import { persistResult } from "../../../../app/lib/agent/db/persist"
-import { AgentPreferencesSchema } from "@/app/lib/llm/types" // already defined with Zod
+import {
+  AgentPreferencesSchema,
+  UserAnswerSchema,
+  ClassificationResult,
+  AgentPreferences,
+  FollowUpQuestion,
+  LLMOutput,
+} from "@/app/lib/llm/types" // already defined with Zod
 
 // -----------------------------
-// Request schema
+// Request schema - validate body (Zod)
 // -----------------------------
 const AgentAPIRequestSchema = z.object({
   notes: z.string().min(1, "Notes cannot be empty"),
   sessionId: z.string().optional(),
-  answers: z.array(
-    z.object({
-      questionId: z.enum(["pov", "format", "tone", "thirdPersonName"]),
-      answer: z.string(),
-    })
-  ).optional(),
+  answers: z.array(UserAnswerSchema).optional(),
   preferences: AgentPreferencesSchema.optional(),
 })
 
@@ -29,16 +31,16 @@ export async function POST(req: NextRequest) {
 
     const { notes, sessionId, answers, preferences } = parsed
 
-    // Map questionId -> field for classifyNotes
-    const mappedAnswers = answers?.map(a => ({
-      field: a.questionId,
-      answer: a.answer,
-    }))
 
     // Call the classifier wrapper
-    const output = await classifyNotes({
+    const output: {
+      result: ClassificationResult
+      questions?: FollowUpQuestion[]
+      preferences?: AgentPreferences
+      llm: LLMOutput
+    } = await classifyNotes({
       notes,
-      answers: mappedAnswers,
+      answers,
       preferences,
     })
 
@@ -51,7 +53,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       sessionId: newSessionId,
-      ...output,
+      result: output.result,
+      questions: output.questions ?? [],
+      preferences: output.preferences ?? {},
+      llm: output.llm,
     })
   } catch (err) {
     console.error("Classify API error:", err)
