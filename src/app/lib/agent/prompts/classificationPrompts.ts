@@ -28,7 +28,7 @@ export function buildClassificationSystemPrompt(): string {
     "Rules:",
     "1) Read the user's raw notes and extract succinct, non-duplicative items.",
     "2) Type each item as one of: 'WINS' | 'RISKS' | 'BLOCKERS' | 'DEPENDENCY' | 'NEXT_STEPS'.",
-    "3) Assign a confidence score in [0.0, 1.0]. Use higher scores when the type is unambiguous.",
+    "3) Every item MUST include a confidence field, always a number in [0.0, 1.0]. Never omit this field. Use higher scores when the type is unambiguous.",
     `4) Respect any provided preferences (pov, format, tone, thirdPersonName). If any are missing, include followUpQuestions to resolve them.`,
     "5) Output must be STRICT JSON matching the ClassificationResult schema—NO extra text.",
     "6) The 'phrased' field MUST present the items phrased according to the (current) preferences:",

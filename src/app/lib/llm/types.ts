@@ -120,7 +120,7 @@ export const AgentPreferencesSchema = z.object({
 export const ClassifiedItemSchema = z.object({
   type: StatusTypeSchema,
   text: z.string(),
-  confidence: z.number().min(0).max(1),
+  confidence: z.number().min(0).max(1).optional(),
 })
 
 export const ClassificationResultSchema = z.object({

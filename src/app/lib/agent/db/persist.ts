@@ -36,10 +36,21 @@ export async function persistResult({
     : null
 
   if (!session) {
+    // Natalie for dev until Clerk is wired up
+    const user = await prisma.user.upsert({
+      where: { email: "natalie.cervantes@gmail.com"},
+      update: {},
+      create: {
+        clerkUserId: "DEV-NATALIE",
+        email: "natalie.cervantes@gmail.com",
+        name: "Natalie Cervantes"
+      },
+    })
+
     session = await prisma.session.create({
       data: {
         // If you want to tie this to a user, pass userId in persistResult args later
-        userId: "TEMP-USER", // placeholder, wire Clerk.userId in a later step
+        userId: user.id, // placeholder, wire Clerk.userId in a later step
       },
     })
   }
@@ -60,7 +71,7 @@ export async function persistResult({
         sessionId: session.id,
         type: item.type,
         content: item.text,
-        confidence: item.confidence,
+        confidence: item.confidence ?? 0.5,
       },
     })
   }
