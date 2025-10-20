@@ -3,23 +3,12 @@ import { z } from "zod"
 import { classifyNotes } from "@/app/lib/llm/classifier" // core logic
 import { persistResult } from "../../../../app/lib/agent/db/persist"
 import {
-  AgentPreferencesSchema,
-  UserAnswerSchema,
   ClassificationResult,
   AgentPreferences,
   FollowUpQuestion,
   LLMOutput,
 } from "@/app/lib/llm/types" // already defined with Zod
-
-// -----------------------------
-// Request schema - validate body (Zod)
-// -----------------------------
-const AgentAPIRequestSchema = z.object({
-  notes: z.string().min(1, "Notes cannot be empty"),
-  sessionId: z.string().optional(),
-  answers: z.array(UserAnswerSchema).optional(),
-  preferences: AgentPreferencesSchema.optional(),
-})
+import { AgentAPIRequestSchema } from "@/app/lib/agent/schemas" // shared validation schema
 
 // -----------------------------
 // Handler
