@@ -66,6 +66,10 @@ export default function AgentModePage() {
                   </li>
                   <li className="flex gap-2">
                     <span className="font-semibold text-gray-900">4.</span>
+                    <span>Confidence chips help users understand how certain the AI is about each classification.  A &quot;Low&quot; confidence blocker might need manual review to verify it&apos;s actually a blocker. A &quot;High&quot; confidence items are more reliably categorized by the AI.  </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="font-semibold text-gray-900">5.</span>
                     <span>Get a polished, ready-to-share status report in seconds</span>
                   </li>
                 </ol>

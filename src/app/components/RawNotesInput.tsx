@@ -76,10 +76,10 @@ export default function RawNotesInput() {
           disabled={isLoading}
           placeholder="Paste your meeting notes, updates, blockers, wins, or any status-related information here...
 
-Examples:
-• Finished the auth refactor, took longer than expected
-• Still blocked on API keys from DevOps
-• Team is concerned about the timeline for Q4 release"
+          Examples:
+          • Finished the auth refactor, took longer than expected
+          • Still blocked on API keys from DevOps
+          • Team is concerned about the timeline for Q4 release"
           className="w-full min-h-[240px] px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed resize-y transition-colors"
         />
         <div className="flex justify-between items-center mt-2">
