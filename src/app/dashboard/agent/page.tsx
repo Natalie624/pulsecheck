@@ -1,11 +1,35 @@
 // Agentic dashboard - beta version with AI-powered classification
 'use client'
 
-import { AgentSessionProvider } from './AgentSessionContext'
+import { AgentSessionProvider, useAgentSession } from './AgentSessionContext'
 import RawNotesInput from '@/app/components/RawNotesInput'
 import QAPanel from '@/app/components/QAPanel'
 import ResultsPanel from '@/app/components/ResultsPanel'
 import HistoryDrawer from '@/app/components/HistoryDrawer'
+import AnsweredQuestionsHistory from '@/app/components/AnsweredQuestionsHistory'
+
+function ClearButton() {
+  const { clearAll, results, questions, answeredQuestions } = useAgentSession()
+
+  // Show clear button if there's any content to clear
+  const hasContent = results.length > 0 || questions.length > 0 || answeredQuestions.length > 0
+
+  if (!hasContent) return null
+
+  return (
+    <div className="mb-6">
+      <button
+        onClick={clearAll}
+        className="w-full px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        <span>Clear Status Report</span>
+      </button>
+    </div>
+  )
+}
 
 export default function AgentModePage() {
   return (
@@ -34,12 +58,18 @@ export default function AgentModePage() {
             {/* Step 1: Raw Notes Input */}
             <RawNotesInput />
 
-            {/* Step 2: Q&A Panel (conditional) */}
+            {/* Step 2: Answered Questions History (conditional) */}
+            <AnsweredQuestionsHistory />
+
+            {/* Step 3: Q&A Panel (conditional) */}
             <QAPanel />
 
-            {/* Step 3: Results Panel (conditional) */}
+            {/* Step 4: Results Panel (conditional) */}
             <ResultsPanel />
           </div>
+
+          {/* Clear Button (conditional) */}
+          <ClearButton />
 
           {/* Footer info */}
           <div className="mt-12 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">

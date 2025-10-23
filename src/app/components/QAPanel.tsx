@@ -4,6 +4,7 @@
 import { useAgentSession } from '../dashboard/agent/AgentSessionContext'
 import { useState } from 'react'
 import { FollowUpAnswersRequestSchema } from '@/app/lib/agent/schemas'
+import { AgentPOV, AgentOutputFormat, AgentTone } from '@/app/lib/llm/types'
 
 export default function QAPanel() {
   const {
@@ -14,11 +15,40 @@ export default function QAPanel() {
     setQuestions,
     setPreferences,
     isLoading,
-    setIsLoading
+    setIsLoading,
+    addAnsweredQuestions
   } = useAgentSession()
 
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
+
+  // Get dropdown options based on field type
+  const getFieldOptions = (field: string): Array<{ value: string; label: string }> => {
+    switch (field) {
+      case 'pov':
+        return [
+          { value: AgentPOV.First, label: 'First person (I created... / We created...)' },
+          { value: AgentPOV.ThirdLimited, label: 'Individual name (Natalie created...)' },
+          { value: AgentPOV.ThirdOmniscient, label: 'Team name (The Dev team created...)' },
+        ]
+      case 'format':
+        return [
+          { value: AgentOutputFormat.Bullets, label: 'Bullet points' },
+          { value: AgentOutputFormat.Paragraph, label: 'Paragraphs' },
+        ]
+      case 'tone':
+        return [
+          { value: AgentTone.TeamChill, label: 'Team chill' },
+          { value: AgentTone.Executive, label: 'Executive' },
+          { value: AgentTone.EscalationMode, label: 'Escalation mode' },
+        ]
+      case 'thirdPersonName':
+        // This field should remain a text input
+        return []
+      default:
+        return []
+    }
+  }
 
   // Only show if there are questions
   if (questions.length === 0) {
@@ -70,6 +100,9 @@ export default function QAPanel() {
 
       const data = await res.json()
 
+      // Track answered questions before updating to new questions
+      addAnsweredQuestions(questions, answersArray)
+
       // Update context with new response
       setResults(data.result.items || [])
       setQuestions(data.questions || []) // May have more follow-ups
@@ -108,22 +141,44 @@ export default function QAPanel() {
       </div>
 
       <div className="space-y-4 mt-4">
-        {questions.map((q, index) => (
-          <div key={q.field} className="space-y-2">
-            <label htmlFor={`question-${q.field}`} className="block text-sm font-medium text-gray-900">
-              {index + 1}. {q.question}
-            </label>
-            <input
-              id={`question-${q.field}`}
-              type="text"
-              value={answers[q.field] || ''}
-              onChange={(e) => handleAnswerChange(q.field, e.target.value)}
-              disabled={isLoading}
-              placeholder="Type your answer here..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-            />
-          </div>
-        ))}
+        {questions.map((q, index) => {
+          const fieldOptions = getFieldOptions(q.field)
+          const isDropdown = fieldOptions.length > 0
+
+          return (
+            <div key={q.field} className="space-y-2">
+              <label htmlFor={`question-${q.field}`} className="block text-sm font-medium text-gray-900">
+                {index + 1}. {q.question}
+              </label>
+              {isDropdown ? (
+                <select
+                  id={`question-${q.field}`}
+                  value={answers[q.field] || ''}
+                  onChange={(e) => handleAnswerChange(q.field, e.target.value)}
+                  disabled={isLoading}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-black"
+                >
+                  <option value="">Select an option...</option>
+                  {fieldOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  id={`question-${q.field}`}
+                  type="text"
+                  value={answers[q.field] || ''}
+                  onChange={(e) => handleAnswerChange(q.field, e.target.value)}
+                  disabled={isLoading}
+                  placeholder="Type your answer here..."
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-black"
+                />
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {error && (

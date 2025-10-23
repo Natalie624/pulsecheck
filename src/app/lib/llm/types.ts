@@ -123,14 +123,15 @@ export const ClassifiedItemSchema = z.object({
   confidence: z.number().min(0).max(1).optional(),
 })
 
-export const ClassificationResultSchema = z.object({
-  items: z.array(ClassifiedItemSchema),
-  preferences: AgentPreferencesSchema,
-})
-
 export const FollowUpQuestionSchema = z.object({
   question: z.string(),
   field: z.enum(['pov', 'format', 'tone', 'thirdPersonName']),
+})
+
+export const ClassificationResultSchema = z.object({
+  items: z.array(ClassifiedItemSchema),
+  preferences: AgentPreferencesSchema,
+  followUpQuestions: z.array(FollowUpQuestionSchema).optional(),
 })
 
 export const UserAnswerSchema = z.object({

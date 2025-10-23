@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
     const newSessionId = await persistResult({
       sessionId,
       notes,
+      answers,
       output,
     })
 

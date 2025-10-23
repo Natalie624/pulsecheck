@@ -5,7 +5,14 @@ import {
   ClassifiedItem,
   FollowUpQuestion,
   AgentPreferences,
+  UserAnswer,
 } from '@/app/lib/llm/types'
+
+interface AnsweredQuestion {
+  question: string
+  field: string
+  answer: string
+}
 
 interface AgentSessionContextType {
   sessionId: string | null
@@ -20,6 +27,10 @@ interface AgentSessionContextType {
   setPreferences: (preferences: AgentPreferences) => void
   isLoading: boolean
   setIsLoading: (loading: boolean) => void
+  answeredQuestions: AnsweredQuestion[]
+  addAnsweredQuestions: (questions: FollowUpQuestion[], answers: UserAnswer[]) => void
+  clearAnsweredQuestions: () => void
+  clearAll: () => void
 }
 
 const AgentSessionContext = createContext<AgentSessionContextType | undefined>(
@@ -33,6 +44,32 @@ export function AgentSessionProvider({ children }: { children: ReactNode }) {
   const [results, setResults] = useState<ClassifiedItem[]>([])
   const [preferences, setPreferences] = useState<AgentPreferences>({})
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [answeredQuestions, setAnsweredQuestions] = useState<AnsweredQuestion[]>([])
+
+  const addAnsweredQuestions = (questions: FollowUpQuestion[], answers: UserAnswer[]) => {
+    const newAnswered = questions.map((q) => {
+      const answer = answers.find((a) => a.field === q.field)
+      return {
+        question: q.question,
+        field: q.field,
+        answer: answer?.answer || '',
+      }
+    })
+    setAnsweredQuestions((prev) => [...prev, ...newAnswered])
+  }
+
+  const clearAnsweredQuestions = () => {
+    setAnsweredQuestions([])
+  }
+
+  const clearAll = () => {
+    setNotes('')
+    setQuestions([])
+    setResults([])
+    setPreferences({})
+    setAnsweredQuestions([])
+    setSessionId(null)
+  }
 
   return (
     <AgentSessionContext.Provider
@@ -49,6 +86,10 @@ export function AgentSessionProvider({ children }: { children: ReactNode }) {
         setPreferences,
         isLoading,
         setIsLoading,
+        answeredQuestions,
+        addAnsweredQuestions,
+        clearAnsweredQuestions,
+        clearAll,
       }}
     >
       {children}

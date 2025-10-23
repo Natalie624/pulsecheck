@@ -1,13 +1,29 @@
 import { ClassificationInput, ClassificationResult } from "../types";
 import { AgentClassifier } from "./interface";
-import { classifyNotes as openaiClassify } from "../../agent/providers/openaiProviderAgent"; //imports openAI provider for agentic features
+import { classifyNotes as openaiClassify, getFollowupQuestions } from "../../agent/providers/openaiProviderAgent"; //imports openAI provider for agentic features
 // import { groqProviderAgent } from "../../agent/providers/groqProviderAgent"; // future
 
 const providerMap: Record<string, AgentClassifier> = {
     openai: {
         classify: async (input: ClassificationInput) => {
             const result = await openaiClassify(input);
-            
+
+            // If no answers were provided and preferences are incomplete, generate follow-up questions
+            let questions = result.followUpQuestions || [];
+
+            // Check if we need to ask follow-up questions
+            const needsQuestions = !input.answers?.length && (
+                !result.preferences?.pov ||
+                !result.preferences?.format ||
+                !result.preferences?.tone
+            );
+
+            // If LLM didn't generate questions but we need them, explicitly ask for them
+            if (needsQuestions && questions.length === 0) {
+                const followupResult = await getFollowupQuestions(input);
+                questions = followupResult.questions || [];
+            }
+
             return {
                 llm: {
                     text: JSON.stringify(result),
@@ -15,7 +31,7 @@ const providerMap: Record<string, AgentClassifier> = {
                     provider: "openai",
                 },
                 result: result as ClassificationResult, // cast ensure type compatibility
-                questions: undefined,
+                questions,
                 preferences: result.preferences // optional field passed through
             };
         },

@@ -77,7 +77,7 @@ export default function RawNotesInput() {
           placeholder="Paste your meeting notes, updates, blockers, wins, or any status-related information here...
 
           Example: Finished the auth refactor, took longer than expected. Still blocked on API keys from DevOps. Team is concerned about the timeline for Q4 release"
-          className="w-full min-h-[240px] px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed resize-y transition-colors placeholder:text-slate-400"
+          className="w-full min-h-[240px] px-4 py-3 text-base text-black border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:cursor-not-allowed resize-y transition-colors placeholder:text-slate-400"
         />
         <div className="flex justify-between items-center mt-2">
           <span className={`text-sm font-medium ${

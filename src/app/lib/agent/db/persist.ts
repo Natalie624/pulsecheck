@@ -3,12 +3,14 @@ import {
   ClassificationResult,
   AgentPreferences,
   LLMOutput,
-  FollowUpQuestion
+  FollowUpQuestion,
+  UserAnswer
 } from "../../llm/types"
 
 interface PersistResultArgs {
   sessionId?: string
   notes: string
+  answers?: UserAnswer[]
   output: {
     result: ClassificationResult
     questions?: FollowUpQuestion[]
@@ -28,6 +30,7 @@ interface PersistResultArgs {
 export async function persistResult({
   sessionId,
   notes,
+  answers,
   output,
 }: PersistResultArgs) {
   // 1. Create or reuse session
@@ -76,7 +79,36 @@ export async function persistResult({
     })
   }
 
-  // 4. Save LLM input + output messages
+  // 4. Save follow-up Q&A if present (before LLM messages for chronological order)
+  if (output.questions && output.questions.length > 0) {
+    // Save agent's questions
+    for (const question of output.questions) {
+      await prisma.message.create({
+        data: {
+          sessionId: session.id,
+          role: "AGENT",
+          kind: "QUESTION",
+          content: question.question,
+        },
+      })
+    }
+  }
+
+  // Save user's answers if they were provided
+  if (answers && answers.length > 0) {
+    for (const answer of answers) {
+      await prisma.message.create({
+        data: {
+          sessionId: session.id,
+          role: "USER",
+          kind: "ANSWER",
+          content: JSON.stringify({ field: answer.field, answer: answer.answer }),
+        },
+      })
+    }
+  }
+
+  // 5. Save LLM input + output messages
   if (output.llm.inputPrompt) {
     await prisma.message.create({
       data: {
@@ -97,7 +129,7 @@ export async function persistResult({
     },
   })
 
-  // 5. Save preferences (upsert per session)
+  // 6. Save preferences (upsert per session)
   if (output.preferences) {
     await prisma.preference.upsert({
       where: { sessionId: session.id },
