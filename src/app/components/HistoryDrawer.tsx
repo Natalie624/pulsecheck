@@ -1,7 +1,7 @@
 // Agentic component - History drawer for viewing past sessions
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // Placeholder session data - will be replaced with real data later
 const PLACEHOLDER_SESSIONS = [
@@ -13,8 +13,18 @@ const PLACEHOLDER_SESSIONS = [
 
 export default function HistoryDrawer() {
   const [isOpen, setIsOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const formatDate = (date: Date) => {
+    // Return a simple format during SSR to avoid hydration mismatch
+    if (!isMounted) {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    }
+
     const today = new Date()
     const yesterday = new Date(today)
     yesterday.setDate(yesterday.getDate() - 1)

@@ -11,6 +11,7 @@ export default function RawNotesInput() {
     setNotes,
     setQuestions,
     setResults,
+    sessionId,
     setSessionId,
     setPreferences,
     isLoading,
@@ -33,11 +34,20 @@ export default function RawNotesInput() {
       const res = await fetch('/api/agent/classify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes }),
+        body: JSON.stringify({
+          notes,
+          ...(sessionId && { sessionId })
+        }),
       })
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
+        console.error('API Error Response:', errorData)
+        // If it's a Zod validation error array, show the first error
+        if (Array.isArray(errorData.error)) {
+          const firstError = errorData.error[0]
+          throw new Error(`Validation error: ${firstError?.message || 'Unknown validation error'}`)
+        }
         throw new Error(errorData.error || 'Failed to classify notes')
       }
 
@@ -116,7 +126,7 @@ export default function RawNotesInput() {
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span>Generate Status Report</span>
+            <span>Submit</span>
           </>
         )}
       </button>

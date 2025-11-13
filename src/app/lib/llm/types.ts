@@ -80,7 +80,7 @@ export interface AgentPreferences {
 export interface ClassifiedItem {
   type: StatusType
   text: string
-  confidence: number // 0.0–1.0
+  confidence?: number // 0.0–1.0 (optional to match Zod schema)
 }
 
 // Complete classification result
@@ -92,11 +92,13 @@ export interface ClassificationResult {
 // Follow-up question flow
 export interface FollowUpQuestion {
   question: string
-  field: keyof AgentPreferences
+  field: keyof AgentPreferences | 'clarification'
+  itemText?: string
+  itemType?: StatusType
 }
 
 export interface UserAnswer {
-  field: keyof AgentPreferences
+  field: keyof AgentPreferences | 'clarification'
   answer: string
 }
 
@@ -125,7 +127,10 @@ export const ClassifiedItemSchema = z.object({
 
 export const FollowUpQuestionSchema = z.object({
   question: z.string(),
-  field: z.enum(['pov', 'format', 'tone', 'thirdPersonName']),
+  field: z.enum(['pov', 'format', 'tone', 'thirdPersonName', 'clarification']),
+  // For clarification questions, store the original item text and type for reference
+  itemText: z.string().optional(),
+  itemType: StatusTypeSchema.optional(),
 })
 
 export const ClassificationResultSchema = z.object({
@@ -135,7 +140,7 @@ export const ClassificationResultSchema = z.object({
 })
 
 export const UserAnswerSchema = z.object({
-  field: z.enum(['pov', 'format', 'tone', 'thirdPersonName']),
+  field: z.enum(['pov', 'format', 'tone', 'thirdPersonName', 'clarification']),
   answer: z.string(),
 })
 
@@ -148,7 +153,7 @@ export const ClassificationInputSchema = z.object({
   answers: z.array(
     // Reuse your existing UserAnswerSchema
     z.object({
-      field: z.enum(['pov', 'format', 'tone', 'thirdPersonName']),
+      field: z.enum(['pov', 'format', 'tone', 'thirdPersonName', 'clarification']),
       answer: z.string(),
     })
   ).optional(),
@@ -160,7 +165,9 @@ export const FollowupQuestionSetSchema = z.object({
   questions: z.array(
     z.object({
       question: z.string(),
-      field: z.enum(['pov', 'format', 'tone', 'thirdPersonName']),
+      field: z.enum(['pov', 'format', 'tone', 'thirdPersonName', 'clarification']),
+      itemText: z.string().optional(),
+      itemType: StatusTypeSchema.optional(),
     })
   ),
 })

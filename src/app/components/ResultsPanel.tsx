@@ -46,11 +46,16 @@ const STATUS_TYPE_CONFIG = {
 function getConfidenceColor(confidence: number): { bg: string; text: string; label: string } {
   if (confidence >= 0.8) {
     return { bg: 'bg-green-100', text: 'text-green-800', label: 'High' }
-  } else if (confidence >= 0.6) {
+  } else if (confidence >= 0.7) {
     return { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Medium' }
   } else {
     return { bg: 'bg-red-100', text: 'text-red-800', label: 'Low' }
   }
+}
+
+// Helper to check if item has low confidence (< 0.7)
+function isLowConfidence(confidence?: number): boolean {
+  return (confidence ?? 1) < 0.7
 }
 
 export default function ResultsPanel() {
@@ -149,15 +154,35 @@ export default function ResultsPanel() {
 
               <ul className="space-y-3">
                 {items.map((item, index) => {
-                  const confidenceInfo = getConfidenceColor(item.confidence)
+                  const confidenceInfo = getConfidenceColor(item.confidence ?? 1)
+                  const lowConf = isLowConfidence(item.confidence)
                   return (
-                    <li key={index} className="flex items-start gap-3 bg-white p-3 rounded-lg shadow-sm">
+                    <li
+                      key={index}
+                      className={`flex items-start gap-3 bg-white p-3 rounded-lg shadow-sm ${
+                        lowConf ? 'border-2 border-orange-300 bg-orange-50' : ''
+                      }`}
+                    >
                       <div className="flex-1">
-                        <p className="text-gray-900">{item.text}</p>
+                        <div className="flex items-start gap-2">
+                          {lowConf && (
+                            <svg className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          <p className={`${lowConf ? 'text-gray-800 font-medium' : 'text-gray-900'}`}>
+                            {item.text}
+                          </p>
+                        </div>
+                        {lowConf && (
+                          <p className="text-xs text-orange-700 mt-1 ml-7">
+                            ⚠️ Low confidence - may need manual review
+                          </p>
+                        )}
                       </div>
                       <span
                         className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold ${confidenceInfo.bg} ${confidenceInfo.text}`}
-                        title={`Confidence: ${(item.confidence * 100).toFixed(0)}%`}
+                        title={`Confidence: ${((item.confidence ?? 1) * 100).toFixed(0)}%`}
                       >
                         {confidenceInfo.label}
                       </span>

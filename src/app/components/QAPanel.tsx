@@ -43,29 +43,67 @@ export default function QAPanel() {
           { value: AgentTone.EscalationMode, label: 'Escalation mode' },
         ]
       case 'thirdPersonName':
-        // This field should remain a text input
+      case 'clarification':
+        // These fields should remain text input
         return []
       default:
         return []
     }
   }
 
+  // Check if this is a clarification question
+  const isClarificationQuestion = (field: string) => field === 'clarification'
+
+  // Filter questions: hide thirdPersonName if first person is selected
+  const visibleQuestions = questions.filter(q => {
+    if (q.field === 'thirdPersonName' && answers['pov'] === AgentPOV.First) {
+      return false
+    }
+    return true
+  })
+
   // Only show if there are questions
-  if (questions.length === 0) {
+  if (visibleQuestions.length === 0) {
     return null
   }
 
   const handleAnswerChange = (field: string, value: string) => {
-    setAnswers(prev => ({ ...prev, [field]: value }))
+    setAnswers(prev => {
+      const newAnswers = { ...prev, [field]: value }
+      // Clear thirdPersonName if first person POV is selected
+      if (field === 'pov' && value === AgentPOV.First) {
+        delete newAnswers.thirdPersonName
+      }
+      return newAnswers
+    })
     setError(null)
   }
 
   const handleSubmit = async () => {
     // Convert answers object to array format expected by API
-    const answersArray = Object.entries(answers).map(([field, answer]) => ({
-      field: field as 'pov' | 'format' | 'tone' | 'thirdPersonName',
-      answer,
-    }))
+    // Map the questionKey back to the actual field from the questions array
+    const answersArray = Object.entries(answers)
+      .filter(([questionKey]) => {
+        // Filter out thirdPersonName if first person POV is selected
+        if (questionKey === 'thirdPersonName' && answers['pov'] === AgentPOV.First) {
+          return false
+        }
+        return true
+      })
+      .map(([questionKey, answer]) => {
+        // For clarification questions, find the original question
+        if (questionKey.startsWith('clarification-')) {
+          const index = parseInt(questionKey.split('-')[1])
+          return {
+            field: 'clarification' as const,
+            answer,
+          }
+        }
+        return {
+          field: questionKey as 'pov' | 'format' | 'tone' | 'thirdPersonName' | 'clarification',
+          answer,
+        }
+      })
 
     // Validate with shared schema
     const validation = FollowUpAnswersRequestSchema.safeParse({
@@ -87,7 +125,7 @@ export default function QAPanel() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionId,
+          ...(sessionId && { sessionId }),
           notes,
           answers: answersArray,
         }),
@@ -100,8 +138,8 @@ export default function QAPanel() {
 
       const data = await res.json()
 
-      // Track answered questions before updating to new questions
-      addAnsweredQuestions(questions, answersArray)
+      // Track answered questions before updating to new questions (only visible ones)
+      addAnsweredQuestions(visibleQuestions, answersArray)
 
       // Update context with new response
       setResults(data.result.items || [])
@@ -119,8 +157,12 @@ export default function QAPanel() {
     }
   }
 
-  // Check if all questions have been answered
-  const allAnswered = questions.every(q => answers[q.field]?.trim())
+  // Check if all visible questions have been answered
+  const allAnswered = visibleQuestions.every((q, index) => {
+    const isClarification = isClarificationQuestion(q.field)
+    const questionKey = isClarification ? `clarification-${index}` : q.field
+    return answers[questionKey]?.trim()
+  })
 
   return (
     <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200 space-y-4">
@@ -141,20 +183,29 @@ export default function QAPanel() {
       </div>
 
       <div className="space-y-4 mt-4">
-        {questions.map((q, index) => {
+        {visibleQuestions.map((q, index) => {
           const fieldOptions = getFieldOptions(q.field)
           const isDropdown = fieldOptions.length > 0
+          const isClarification = isClarificationQuestion(q.field)
+          // Use a unique key that includes index to handle multiple clarification questions
+          const questionKey = isClarification ? `clarification-${index}` : q.field
 
           return (
-            <div key={q.field} className="space-y-2">
-              <label htmlFor={`question-${q.field}`} className="block text-sm font-medium text-gray-900">
+            <div key={questionKey} className="space-y-2">
+              <label htmlFor={`question-${questionKey}`} className="block text-sm font-medium text-gray-900">
                 {index + 1}. {q.question}
               </label>
+              {isClarification && q.itemText && (
+                <div className="mb-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-1">Original item:</p>
+                  <p className="text-sm text-gray-700 italic">"{q.itemText}"</p>
+                </div>
+              )}
               {isDropdown ? (
                 <select
-                  id={`question-${q.field}`}
-                  value={answers[q.field] || ''}
-                  onChange={(e) => handleAnswerChange(q.field, e.target.value)}
+                  id={`question-${questionKey}`}
+                  value={answers[questionKey] || ''}
+                  onChange={(e) => handleAnswerChange(questionKey, e.target.value)}
                   disabled={isLoading}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed bg-white text-black"
                 >
@@ -165,12 +216,22 @@ export default function QAPanel() {
                     </option>
                   ))}
                 </select>
+              ) : isClarification ? (
+                <textarea
+                  id={`question-${questionKey}`}
+                  value={answers[questionKey] || ''}
+                  onChange={(e) => handleAnswerChange(questionKey, e.target.value)}
+                  disabled={isLoading}
+                  placeholder="Provide additional context or clarification..."
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-black resize-y"
+                />
               ) : (
                 <input
-                  id={`question-${q.field}`}
+                  id={`question-${questionKey}`}
                   type="text"
-                  value={answers[q.field] || ''}
-                  onChange={(e) => handleAnswerChange(q.field, e.target.value)}
+                  value={answers[questionKey] || ''}
+                  onChange={(e) => handleAnswerChange(questionKey, e.target.value)}
                   disabled={isLoading}
                   placeholder="Type your answer here..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed text-black"

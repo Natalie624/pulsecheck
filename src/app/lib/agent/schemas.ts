@@ -33,7 +33,9 @@ export const AgentAPIResponseSchema = z.object({
   }),
   questions: z.array(z.object({
     question: z.string(),
-    field: z.enum(['pov', 'format', 'tone', 'thirdPersonName']),
+    field: z.enum(['pov', 'format', 'tone', 'thirdPersonName', 'clarification']),
+    itemText: z.string().optional(),
+    itemType: z.enum(['WINS', 'RISKS', 'BLOCKERS', 'DEPENDENCY', 'NEXT_STEPS']).optional(),
   })),
   preferences: AgentPreferencesSchema,
   llm: z.object({

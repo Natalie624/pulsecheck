@@ -16,6 +16,12 @@ import { AgentAPIRequestSchema } from "@/app/lib/agent/schemas" // shared valida
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+    console.log("Received request body:", {
+      notesLength: body.notes?.length,
+      hasSessionId: !!body.sessionId,
+      hasAnswers: !!body.answers,
+      hasPreferences: !!body.preferences
+    })
     const parsed = AgentAPIRequestSchema.parse(body)
 
     const { notes, sessionId, answers, preferences } = parsed
@@ -33,6 +39,13 @@ export async function POST(req: NextRequest) {
       preferences,
     })
 
+    // Check if there are any questions to ask
+    const hasQuestions = output.questions && output.questions.length > 0;
+
+    // Only return results if there are NO questions (questions have all been answered)
+    // OR if answers were provided (this is a subsequent call after answering questions)
+    const shouldReturnResults = !hasQuestions || (answers && answers.length > 0);
+
     // Persist session, notes, status items, messages, preferences
     const newSessionId = await persistResult({
       sessionId,
@@ -43,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       sessionId: newSessionId,
-      result: output.result,
+      result: shouldReturnResults ? output.result : { items: [], preferences: {} },
       questions: output.questions ?? [],
       preferences: output.preferences ?? {},
       llm: output.llm,
@@ -52,6 +65,7 @@ export async function POST(req: NextRequest) {
     console.error("Classify API error:", err)
 
     if (err instanceof z.ZodError) {
+      console.error("Zod validation errors:", JSON.stringify(err.errors, null, 2))
       return NextResponse.json({ error: err.errors }, { status: 400 })
     }
 
