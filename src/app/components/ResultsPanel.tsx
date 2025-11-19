@@ -1,56 +1,32 @@
-// Agentic component - Results panel with StatusType grouping and confidence indicators
+// Agentic component - Results panel displaying unified report based on user preferences
 'use client'
 
 import { useAgentSession } from '../dashboard/agent/AgentSessionContext'
 import { StatusType } from '@prisma/client'
+import { AgentOutputFormat } from '@/app/lib/llm/types'
 import { useState } from 'react'
 
 const STATUS_TYPE_CONFIG = {
   WINS: {
     label: 'Wins',
     icon: '🎉',
-    color: 'text-green-700',
-    bgColor: 'bg-green-50',
-    borderColor: 'border-green-200',
   },
   RISKS: {
     label: 'Risks',
     icon: '⚠️',
-    color: 'text-yellow-700',
-    bgColor: 'bg-yellow-50',
-    borderColor: 'border-yellow-200',
   },
   BLOCKERS: {
     label: 'Blockers',
     icon: '🚧',
-    color: 'text-red-700',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
   },
   DEPENDENCY: {
     label: 'Dependencies',
     icon: '🔗',
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
   },
   NEXT_STEPS: {
     label: 'Next Steps',
     icon: '➡️',
-    color: 'text-purple-700',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
   },
-}
-
-function getConfidenceColor(confidence: number): { bg: string; text: string; label: string } {
-  if (confidence >= 0.8) {
-    return { bg: 'bg-green-100', text: 'text-green-800', label: 'High' }
-  } else if (confidence >= 0.7) {
-    return { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Medium' }
-  } else {
-    return { bg: 'bg-red-100', text: 'text-red-800', label: 'Low' }
-  }
 }
 
 // Helper to check if item has low confidence (< 0.7)
@@ -59,7 +35,7 @@ function isLowConfidence(confidence?: number): boolean {
 }
 
 export default function ResultsPanel() {
-  const { results } = useAgentSession()
+  const { results, preferences } = useAgentSession()
   const [copiedToClipboard, setCopiedToClipboard] = useState(false)
 
   // Don't show if no results
@@ -79,24 +55,15 @@ export default function ResultsPanel() {
   // Order by status type
   const orderedTypes: StatusType[] = ['WINS', 'RISKS', 'BLOCKERS', 'DEPENDENCY', 'NEXT_STEPS']
 
-  const handleCopyToClipboard = async () => {
-    // Format results as markdown
-    let markdown = '# Status Report\n\n'
+  // Determine format (default to bullets if not specified)
+  const format = preferences.format || AgentOutputFormat.Bullets
+  const isParagraph = format === AgentOutputFormat.Paragraph
 
-    orderedTypes.forEach((statusType) => {
-      const items = groupedResults[statusType]
-      if (items && items.length > 0) {
-        const config = STATUS_TYPE_CONFIG[statusType]
-        markdown += `## ${config.icon} ${config.label}\n\n`
-        items.forEach((item) => {
-          markdown += `- ${item.text}\n`
-        })
-        markdown += '\n'
-      }
-    })
+  const handleCopyToClipboard = async () => {
+    const reportText = generateReportText(groupedResults, orderedTypes, isParagraph)
 
     try {
-      await navigator.clipboard.writeText(markdown)
+      await navigator.clipboard.writeText(reportText)
       setCopiedToClipboard(true)
       setTimeout(() => setCopiedToClipboard(false), 2000)
     } catch (err) {
@@ -104,10 +71,63 @@ export default function ResultsPanel() {
     }
   }
 
+  // Generate report text for export
+  const generateReportText = (
+    grouped: Record<StatusType, typeof results>,
+    types: StatusType[],
+    paragraph: boolean
+  ): string => {
+    let text = 'Status Report\n\n'
+
+    types.forEach((statusType) => {
+      const items = grouped[statusType]
+      if (items && items.length > 0) {
+        const config = STATUS_TYPE_CONFIG[statusType]
+        text += `${config.icon} ${config.label}\n`
+
+        if (paragraph) {
+          // Paragraph format: join items with proper punctuation
+          const sentences = items.map((item) => {
+            const trimmed = item.text.trim()
+            // Ensure sentence ends with punctuation
+            return trimmed.endsWith('.') || trimmed.endsWith('!') || trimmed.endsWith('?')
+              ? trimmed
+              : trimmed + '.'
+          })
+          text += sentences.join(' ') + '\n\n'
+        } else {
+          // Bullet format
+          items.forEach((item) => {
+            text += `• ${item.text}\n`
+          })
+          text += '\n'
+        }
+      }
+    })
+
+    return text
+  }
+
+  // Collect low confidence items for footnote
+  const lowConfidenceItems: { section: string; text: string }[] = []
+  orderedTypes.forEach((statusType) => {
+    const items = groupedResults[statusType]
+    if (items) {
+      items.forEach((item) => {
+        if (isLowConfidence(item.confidence)) {
+          lowConfidenceItems.push({
+            section: STATUS_TYPE_CONFIG[statusType].label,
+            text: item.text,
+          })
+        }
+      })
+    }
+  })
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Your Status Report</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Status Report</h2>
         <button
           onClick={handleCopyToClipboard}
           className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors flex items-center gap-2"
@@ -130,69 +150,72 @@ export default function ResultsPanel() {
         </button>
       </div>
 
-      <div className="space-y-4">
-        {orderedTypes.map((statusType) => {
-          const items = groupedResults[statusType]
-          if (!items || items.length === 0) return null
+      {/* Single unified report container */}
+      <div className="bg-white border-2 border-gray-200 rounded-lg p-8 shadow-sm">
+        <div className="space-y-6">
+          {orderedTypes.map((statusType) => {
+            const items = groupedResults[statusType]
+            if (!items || items.length === 0) return null
 
-          const config = STATUS_TYPE_CONFIG[statusType]
+            const config = STATUS_TYPE_CONFIG[statusType]
 
-          return (
-            <div
-              key={statusType}
-              className={`${config.bgColor} ${config.borderColor} border-2 rounded-lg p-5`}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-2xl">{config.icon}</span>
-                <h3 className={`text-xl font-bold ${config.color}`}>
-                  {config.label}
+            return (
+              <div key={statusType} className="space-y-2">
+                {/* Section heading */}
+                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <span>{config.icon}</span>
+                  <span>{config.label}</span>
                 </h3>
-                <span className="text-sm text-gray-500 ml-auto">
-                  {items.length} {items.length === 1 ? 'item' : 'items'}
-                </span>
-              </div>
 
-              <ul className="space-y-3">
-                {items.map((item, index) => {
-                  const confidenceInfo = getConfidenceColor(item.confidence ?? 1)
-                  const lowConf = isLowConfidence(item.confidence)
-                  return (
-                    <li
-                      key={index}
-                      className={`flex items-start gap-3 bg-white p-3 rounded-lg shadow-sm ${
-                        lowConf ? 'border-2 border-orange-300 bg-orange-50' : ''
-                      }`}
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-start gap-2">
-                          {lowConf && (
-                            <svg className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                          <p className={`${lowConf ? 'text-gray-800 font-medium' : 'text-gray-900'}`}>
-                            {item.text}
-                          </p>
-                        </div>
-                        {lowConf && (
-                          <p className="text-xs text-orange-700 mt-1 ml-7">
-                            ⚠️ Low confidence - may need manual review
-                          </p>
-                        )}
-                      </div>
-                      <span
-                        className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold ${confidenceInfo.bg} ${confidenceInfo.text}`}
-                        title={`Confidence: ${((item.confidence ?? 1) * 100).toFixed(0)}%`}
-                      >
-                        {confidenceInfo.label}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          )
-        })}
+                {/* Content based on format preference */}
+                {isParagraph ? (
+                  // Paragraph format
+                  <p className="text-gray-800 leading-relaxed">
+                    {items.map((item, index) => {
+                      const text = item.text.trim()
+                      const lowConf = isLowConfidence(item.confidence)
+                      // Ensure sentence ends with punctuation
+                      const formattedText =
+                        text.endsWith('.') || text.endsWith('!') || text.endsWith('?')
+                          ? text
+                          : text + '.'
+
+                      return (
+                        <span key={index}>
+                          {formattedText}
+                          {lowConf && <sup className="text-orange-600 font-bold">*</sup>}
+                          {index < items.length - 1 && ' '}
+                        </span>
+                      )
+                    })}
+                  </p>
+                ) : (
+                  // Bullet list format
+                  <ul className="space-y-2 ml-6">
+                    {items.map((item, index) => {
+                      const lowConf = isLowConfidence(item.confidence)
+                      return (
+                        <li key={index} className="text-gray-800 leading-relaxed list-disc">
+                          {item.text}
+                          {lowConf && <sup className="text-orange-600 font-bold ml-1">*</sup>}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Low confidence footnote */}
+        {lowConfidenceItems.length > 0 && (
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <p className="text-xs text-gray-600">
+              <sup className="text-orange-600 font-bold">*</sup> Items marked with an asterisk have lower confidence and may require manual review.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
