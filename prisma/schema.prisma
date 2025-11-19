@@ -21,11 +21,11 @@ enum UserRole {
 }
 
 enum StatusType {
-  WIN
-  RISK
-  BLOCKER
+  WINS
+  RISKS
+  BLOCKERS
   DEPENDENCY
-  NEXT_STEP
+  NEXT_STEPS
 }
 
 enum MessageRole {
@@ -76,8 +76,9 @@ model Session {
   statusItems StatusItem[]
   messages    Message[]
 
-  startedAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  startedAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  Preference Preference?
 
   @@index([userId, startedAt])
 }
@@ -137,4 +138,18 @@ model Message {
   createdAt DateTime @default(now())
 
   @@index([sessionId, createdAt])
+}
+
+model Preference {
+  id        String  @id @default(cuid())
+  sessionId String  @unique
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  pov             String?
+  format          String?
+  tone            String?
+  thirdPersonName String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

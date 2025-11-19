@@ -1,6 +1,6 @@
 // GPT-4o logic lives here
 
-// lib/llm/openaiProvider.ts
+// Runs freemium version of PulseCheck
 
 import { ChatOpenAI } from '@langchain/openai';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
