@@ -1,4 +1,4 @@
-import { ClassificationInput, ClassificationResult, FollowUpQuestion, LOW_CONF_THRESHOLD } from "../types";
+import { ClassificationInput, ClassificationResult, FollowUpQuestion } from "../types";
 import { AgentClassifier } from "./interface";
 import { classifyNotes as openaiClassify, getFollowupQuestions } from "../../agent/providers/openaiProviderAgent"; //imports openAI provider for agentic features
 // import { groqProviderAgent } from "../../agent/providers/groqProviderAgent"; // future

@@ -93,7 +93,7 @@ export default function QAPanel() {
       .map(([questionKey, answer]) => {
         // For clarification questions, find the original question
         if (questionKey.startsWith('clarification-')) {
-          const index = parseInt(questionKey.split('-')[1])
+          const _index = parseInt(questionKey.split('-')[1])
           return {
             field: 'clarification' as const,
             answer,
@@ -198,7 +198,7 @@ export default function QAPanel() {
               {isClarification && q.itemText && (
                 <div className="mb-2 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                   <p className="text-xs text-gray-500 mb-1">Original item:</p>
-                  <p className="text-sm text-gray-700 italic">"{q.itemText}"</p>
+                  <p className="text-sm text-gray-700 italic">&quot;{q.itemText}&quot;</p>
                 </div>
               )}
               {isDropdown ? (
