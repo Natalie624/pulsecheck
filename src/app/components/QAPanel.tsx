@@ -93,7 +93,6 @@ export default function QAPanel() {
       .map(([questionKey, answer]) => {
         // For clarification questions, find the original question
         if (questionKey.startsWith('clarification-')) {
-          const _index = parseInt(questionKey.split('-')[1])
           return {
             field: 'clarification' as const,
             answer,
