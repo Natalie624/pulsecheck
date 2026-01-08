@@ -317,7 +317,7 @@ export async function GET(request: NextRequest) {
     } else {
       // PDF format
       const pdfBuffer = await generatePDFReport(groupedItems, preferences)
-      return new Response(pdfBuffer.buffer.slice(pdfBuffer.byteOffset, pdfBuffer.byteOffset + pdfBuffer.byteLength), {
+      return new Response(new Uint8Array(pdfBuffer), {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="status-report-${sessionId}.pdf"`,
