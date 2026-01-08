@@ -298,9 +298,9 @@ export async function GET(request: NextRequest) {
     // Extract preferences (database stores as strings, cast to proper types)
     const preferences: Partial<AgentPreferences> = sessionData.Preference
       ? {
-          pov: sessionData.Preference.pov as any,
-          format: sessionData.Preference.format as any,
-          tone: sessionData.Preference.tone as any,
+          pov: sessionData.Preference.pov as AgentPreferences['pov'],
+          format: sessionData.Preference.format as AgentPreferences['format'],
+          tone: sessionData.Preference.tone as AgentPreferences['tone'],
           thirdPersonName: sessionData.Preference.thirdPersonName ?? undefined,
         }
       : {}
@@ -317,7 +317,7 @@ export async function GET(request: NextRequest) {
     } else {
       // PDF format
       const pdfBuffer = await generatePDFReport(groupedItems, preferences)
-      return new Response(pdfBuffer as any, {
+      return new Response(pdfBuffer.buffer.slice(pdfBuffer.byteOffset, pdfBuffer.byteOffset + pdfBuffer.byteLength), {
         headers: {
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="status-report-${sessionId}.pdf"`,
