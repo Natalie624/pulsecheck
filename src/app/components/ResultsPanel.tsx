@@ -35,8 +35,9 @@ function isLowConfidence(confidence?: number): boolean {
 }
 
 export default function ResultsPanel() {
-  const { results, preferences } = useAgentSession()
+  const { results, preferences, sessionId } = useAgentSession()
   const [copiedToClipboard, setCopiedToClipboard] = useState(false)
+  const [exportingFormat, setExportingFormat] = useState<'md' | 'pdf' | null>(null)
 
   // Don't show if no results
   if (results.length === 0) {
@@ -68,6 +69,42 @@ export default function ResultsPanel() {
       setTimeout(() => setCopiedToClipboard(false), 2000)
     } catch (err) {
       console.error('Failed to copy to clipboard:', err)
+    }
+  }
+
+  const handleExport = async (format: 'md' | 'pdf') => {
+    if (!sessionId) {
+      console.error('No session ID available for export')
+      return
+    }
+
+    setExportingFormat(format)
+
+    try {
+      const response = await fetch(
+        `/api/export?sessionId=${sessionId}&format=${format}`
+      )
+
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Export failed:', error)
+        return
+      }
+
+      // Create blob and trigger download
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `status-report-${sessionId}.${format === 'md' ? 'md' : 'pdf'}`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Export error:', err)
+    } finally {
+      setExportingFormat(null)
     }
   }
 
@@ -128,26 +165,77 @@ export default function ResultsPanel() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Status Report</h2>
-        <button
-          onClick={handleCopyToClipboard}
-          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors flex items-center gap-2"
-        >
-          {copiedToClipboard ? (
-            <>
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Copied!</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              <span>Copy to Clipboard</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Export Markdown Button */}
+          <button
+            onClick={() => handleExport('md')}
+            disabled={!sessionId || exportingFormat !== null}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exportingFormat === 'md' ? (
+              <>
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>Exporting...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Export MD</span>
+              </>
+            )}
+          </button>
+
+          {/* Export PDF Button */}
+          <button
+            onClick={() => handleExport('pdf')}
+            disabled={!sessionId || exportingFormat !== null}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exportingFormat === 'pdf' ? (
+              <>
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>Exporting...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span>Export PDF</span>
+              </>
+            )}
+          </button>
+
+          {/* Copy to Clipboard Button */}
+          <button
+            onClick={handleCopyToClipboard}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors flex items-center gap-2"
+          >
+            {copiedToClipboard ? (
+              <>
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Copy to Clipboard</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Single unified report container */}
