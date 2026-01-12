@@ -1,25 +1,52 @@
 # 🧠 PulseCheck
 
-PulseCheck is an AI-powered status report generator that helps teams quickly summarize progress, blockers, and next steps from simple input prompts.
+As of January 2026, PulseCheck is an AI-powered status report platform that transforms raw meeting notes and scattered updates into polished, professional status reports. It offers two distinct workflows: a simple free version for quick report generation, and an intelligent Agent Mode that uses multi-turn AI classification to guide users through preference selection, confidence-based clarification, and comprehensive session management. Users can generate, edit, export (Markdown/PDF), and maintain a full history of status reports with advanced filtering, making it ideal for tech teams, managers, and async workflows.
+
+V1, Shelved for now (Jan 12, 2026)
 
 ## 🚀 Project Goals
 
-- Fast, intuitive UI for generating reports
-- AI-generated status updates with tone control
+- Fast, intuitive UI for generating status & look-back performance review reports
+- AI-generated reports with tone control
 - Built for tech teams, managers, and async workflows
 
 ## 🛠 Tech Stack
 
-- [Next.js 15](https://nextjs.org/)
-- TypeScript
-- App Router
-- Tailwind CSS
-- Clerk.dev (Auth)
-- OpenAI API with gpt-4.1
-- Langchain AI abstraction library 
-- Vercel (Hosting)
-- Neon DB
-- Prisma ORM
+### Frontend
+- [Next.js 15.5.9](https://nextjs.org/) with App Router
+- React 19 (with React DOM 19)
+- TypeScript 5
+- Tailwind CSS 4 with PostCSS
+- Lucide React (icons)
+- Radix UI (accessible tooltips)
+- React Markdown (report rendering)
+
+### Backend & AI
+- Next.js API Routes (serverless)
+- OpenAI API 5.8.2 (GPT-4.1 for free version, GPT-4o-mini for Agent Mode)
+- LangChain 0.3.29 with @langchain/core 0.3.62 (AI abstraction layer)
+- Zod 3.25.74 (schema validation)
+- PDFKit 0.17.2 (PDF generation)
+
+### Database & Auth
+- PostgreSQL (Neon DB)
+- Prisma ORM 6.15.0
+- Clerk.dev 6.23.3 (authentication & user management)
+- Svix 1.84.1 (webhook handling)
+
+### Analytics & Monitoring
+- PostHog 1.257.0 (product analytics)
+- Vercel Speed Insights 1.2.0
+
+### Testing
+- Vitest 3.2.4 with @vitest/coverage-v8
+- @testing-library/react 16.3.0
+- @testing-library/jest-dom 6.6.3
+- jsdom 26.1.0
+
+### Hosting & Deployment
+- Vercel (hosting platform)
+- PostgreSQL on Neon (managed database)
 
 ## 📦 Getting Started
 
@@ -47,11 +74,13 @@ npx prisma migrate dev --name init_agent_core
 ```
 
 ## Roadmap
-- ✅ Integrate Clerk.dev for login
-- ✅ Build prompt -> report logic via OpenAI API
-- ✅ Add tone/style selector
-- ✅ Allow export or copy of report (MD/PDF exports with PDFKit)
+- Structured Metadata & Search
+- Roll-ups & Reviews
+- Semantic Memory & Saved Search
+- Review Packs & Insights
 - Team sharing and history (future)
+- Posthog Analytics
+- Security and performance enhancements 
 
 ## 📄 Export Features
 
@@ -71,168 +100,15 @@ PulseCheck supports exporting status reports in two formats:
 - Low-confidence footnotes
 - Page breaks for long reports
 
-### API Endpoint
-```
-GET /api/export?sessionId={id}&format={md|pdf}
-```
+## 🔒 Production Considerations 
 
-## 🔒 Production Considerations
+See [roadmap](https://docs.google.com/document/d/1qKQkpintsT9S_m7iN1RqTXjopjGQMYj2jFZJgU_RQyI/edit?pli=1&tab=t.0#bookmark=id.220otgt60er0) (not publically available)
 
-### Security
 
-#### Authentication (TODO)
-Currently, the export API does not verify user ownership of sessions. **Before production deployment:**
 
-```typescript
-// Add to src/app/api/export/route.ts
-import { auth } from '@clerk/nextjs'
 
-export async function GET(request: NextRequest) {
-  const { userId } = auth()
-  if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
 
-  // Verify session belongs to user
-  const sessionData = await prisma.session.findUnique({
-    where: {
-      id: sessionId,
-      userId: userId  // Ensure user owns the session
-    },
-    // ...
-  })
-}
-```
 
-**Why:** Prevents unauthorized users from exporting other users' sessions via URL manipulation.
-
-#### Input Validation
-- ✅ Session ID format validated with Zod
-- ✅ Format parameter restricted to 'md' | 'pdf' enum
-- ✅ SQL injection prevented via Prisma ORM parameterization
-- ✅ No path traversal risk (sessionId not used for file paths)
-
-### Performance
-
-#### Current Performance Characteristics
-- **Small sessions (10 items):** <100ms generation time
-- **Medium sessions (50 items):** <500ms generation time
-- **Large sessions (200 items):** <2s generation time
-
-#### Optimization Opportunities
-
-**1. Caching Strategy**
-```typescript
-// Future enhancement: Cache generated exports
-const cacheKey = `export:${sessionId}:${preferencesHash}:${format}`
-// Store in Redis with 1-hour TTL
-// Invalidate on session updates
-```
-
-**2. Background Job Processing**
-For very large exports (>100 items):
-- Queue export job in background worker
-- Provide download link when ready
-- Use polling or WebSockets for status updates
-
-**3. Streaming Response**
-PDFKit supports streaming, but Next.js Response API doesn't easily support it. Consider for future optimization.
-
-### Deployment
-
-#### Serverless Environments (Vercel, AWS Lambda)
-
-**File System Access:**
-- ✅ Logo file (`public/logo.png`) must be committed to repository
-- ✅ Vercel includes `public/` files in deployment automatically
-- ✅ `process.cwd()` correctly resolves to project root in Next.js
-
-**PDFKit Fonts:**
-- ✅ Using built-in fonts (Helvetica, Helvetica-Bold, Helvetica-Oblique)
-- ✅ No custom font files required
-- ⚠️ If adding custom fonts, include them in deployment package
-
-**Memory Limits:**
-- ✅ Vercel default: 1GB (sufficient for 500-item reports)
-- ✅ AWS Lambda: 128MB-10GB configurable
-- ⚠️ Monitor memory usage for very large sessions
-
-**Testing:**
-- Deploy to staging environment before production
-- Test exports with various session sizes
-- Verify logo renders correctly in deployed environment
-
-#### Environment Variables
-No additional environment variables required for export functionality.
-
-### Monitoring & Logging
-
-#### Recommended Production Logging
-```typescript
-// Add to src/app/api/export/route.ts
-console.log('[Export] Request:', {
-  sessionId,
-  format,
-  itemCount: statusItems.length,
-  userId
-})
-
-console.log('[Export] Generated:', {
-  format,
-  bytes: buffer.length,
-  duration: Date.now() - startTime
-})
-```
-
-#### Metrics to Track
-- Export request volume (by format: MD vs PDF)
-- Average generation time by session size
-- Error rate (404 Not Found, 500 Server Error)
-- File sizes generated
-- User engagement with exports vs copy-to-clipboard
-
-#### Alerting
-- Set up alerts for error rate >5%
-- Alert if generation time >5s (indicates performance issues)
-- Monitor failed exports (network errors, blob creation failures)
-
-### Error Handling
-
-#### Handled Edge Cases
-1. **Session not found** → 404 response
-2. **Missing sessionId in UI** → Export buttons disabled
-3. **Logo file missing** → PDF generates without logo (graceful fallback)
-4. **Empty status items** → Exports generate with headers only
-5. **Invalid format parameter** → 400 with Zod validation error
-6. **Network errors** → Export button returns to normal state
-7. **Large sessions (500+ items)** → May take 2-3s but completes successfully
-
-#### Cross-Browser Testing
-- ✅ Chrome/Edge (Chromium) - Primary target
-- ✅ Firefox - Blob download handling tested
-- ⚠️ Safari - Test strict download policies
-- ⚠️ iOS Safari - Test file downloads behavior
-- ⚠️ Chrome Android - Test download manager integration
-
-### Future Enhancements
-
-#### Short-Term
-- [ ] Add timestamp header to exports (Generated on: ...)
-- [ ] Show user preferences as metadata in exports
-- [ ] Email export feature (send PDF as attachment)
-- [ ] Export history tracking in database
-
-#### Medium-Term
-- [ ] Bulk export multiple sessions as ZIP
-- [ ] Custom PDF templates
-- [ ] Excel export (.xlsx) for data analysis
-- [ ] Scheduled auto-exports (weekly reports)
-
-#### Long-Term
-- [ ] Collaboration features (share exports with team)
-- [ ] Analytics charts in PDF exports
-- [ ] Version control for exports
-- [ ] Programmatic export API for integrations
 
 Built with ❤️ by @Natalie624 
 
