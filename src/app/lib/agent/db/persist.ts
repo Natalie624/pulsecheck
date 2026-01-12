@@ -9,6 +9,7 @@ import {
 
 interface PersistResultArgs {
   sessionId?: string
+  clerkUserId: string
   notes: string
   answers?: UserAnswer[]
   output: {
@@ -29,31 +30,29 @@ interface PersistResultArgs {
  */
 export async function persistResult({
   sessionId,
+  clerkUserId,
   notes,
   answers,
   output,
 }: PersistResultArgs) {
-  // 1. Create or reuse session
+  // 1. Get user from database (should exist from webhook or fallback)
+  const user = await prisma.user.findUnique({
+    where: { clerkUserId },
+  });
+
+  if (!user) {
+    throw new Error(`User not found for clerkUserId: ${clerkUserId}. This should not happen with hybrid approach.`);
+  }
+
+  // 2. Create or reuse session
   let session = sessionId
     ? await prisma.session.findUnique({ where: { id: sessionId } })
     : null
 
   if (!session) {
-    // Natalie for dev until Clerk is wired up
-    const user = await prisma.user.upsert({
-      where: { email: "natalie.cervantes@gmail.com"},
-      update: {},
-      create: {
-        clerkUserId: "DEV-NATALIE",
-        email: "natalie.cervantes@gmail.com",
-        name: "Natalie Cervantes"
-      },
-    })
-
     session = await prisma.session.create({
       data: {
-        // If you want to tie this to a user, pass userId in persistResult args later
-        userId: user.id, // placeholder, wire Clerk.userId in a later step
+        userId: user.id,
       },
     })
   }
