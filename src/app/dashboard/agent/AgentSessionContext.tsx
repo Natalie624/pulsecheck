@@ -31,6 +31,8 @@ interface AgentSessionContextType {
   addAnsweredQuestions: (questions: FollowUpQuestion[], answers: UserAnswer[]) => void
   clearAnsweredQuestions: () => void
   clearAll: () => void
+  viewingHistorySessionId: string | null
+  setViewingHistorySessionId: (id: string | null) => void
 }
 
 const AgentSessionContext = createContext<AgentSessionContextType | undefined>(
@@ -45,6 +47,7 @@ export function AgentSessionProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] = useState<AgentPreferences>({})
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [answeredQuestions, setAnsweredQuestions] = useState<AnsweredQuestion[]>([])
+  const [viewingHistorySessionId, setViewingHistorySessionId] = useState<string | null>(null)
 
   const addAnsweredQuestions = (questions: FollowUpQuestion[], answers: UserAnswer[]) => {
     const newAnswered = questions.map((q) => {
@@ -90,6 +93,8 @@ export function AgentSessionProvider({ children }: { children: ReactNode }) {
         addAnsweredQuestions,
         clearAnsweredQuestions,
         clearAll,
+        viewingHistorySessionId,
+        setViewingHistorySessionId,
       }}
     >
       {children}
